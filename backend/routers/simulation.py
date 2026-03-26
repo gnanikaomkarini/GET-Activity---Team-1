@@ -1,13 +1,14 @@
 import hashlib
 import json
+from datetime import datetime
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from ..database import get_db
-from ..models.device import Device, Reading, Analysis
-from ..simulator import simulator
-from ..schemas.analysis import AnalysisRequest, AnalysisResponse, GetAnalysisRequest
+from database import get_db
+from models.device import Device, Reading, Analysis
+from simulator import simulator
+from schemas.analysis import AnalysisRequest, AnalysisResponse
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -83,7 +84,6 @@ def run_scenario(
 
 @router.get("/devices/{device_id}/analysis", response_model=AnalysisResponse)
 def get_cached_analysis(device_id: int, db: Session = Depends(get_db)):
-    """Get the latest cached analysis for a device."""
     analysis = (
         db.query(Analysis)
         .filter(Analysis.device_id == device_id)
@@ -103,7 +103,6 @@ def get_cached_analysis(device_id: int, db: Session = Depends(get_db)):
 def get_device_readings(
     device_id: int, limit: int = Query(200, le=1000), db: Session = Depends(get_db)
 ):
-    """Get readings for a device, used by frontend for AI analysis."""
     device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
@@ -146,7 +145,6 @@ def get_device_readings(
 
 @router.post("/analysis", response_model=AnalysisResponse)
 def save_analysis(analysis_req: AnalysisRequest, db: Session = Depends(get_db)):
-    """Save analysis from frontend (called after AI generates response)."""
     device = db.query(Device).filter(Device.id == analysis_req.device_id).first()
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
@@ -179,6 +177,3 @@ def save_analysis(analysis_req: AnalysisRequest, db: Session = Depends(get_db)):
     db.refresh(analysis)
 
     return analysis
-
-
-from datetime import datetime

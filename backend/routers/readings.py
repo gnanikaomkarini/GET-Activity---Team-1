@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
 
-from ..database import get_db
-from ..models.reading import Reading
-from ..models.device import Device
-from ..schemas.reading import ReadingResponse
+from database import get_db
+from models.reading import Reading
+from models.device import Device
+from schemas.reading import ReadingResponse
 
 router = APIRouter(prefix="/api/readings", tags=["readings"])
 
