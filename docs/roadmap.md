@@ -2,7 +2,7 @@
 
 ## Overview
 
-Python-only stack. Simple and minimal.
+Python + AI (LLM). Simple 8-week build.
 
 ---
 
@@ -12,35 +12,37 @@ Python-only stack. Simple and minimal.
 
 ### Week 1: Backend + Database
 - [ ] Set up FastAPI project
-- [ ] Create database models (users, devices, readings)
+- [ ] Create database models
 - [ ] Implement JWT auth
 - [ ] Basic CRUD endpoints
 
-### Week 2: Simulator + API
+### Week 2: Simulator
 - [ ] Build device simulator
 - [ ] Time-of-day patterns
 - [ ] CRUD endpoints for devices
-- [ ] Reading ingestion endpoint
+- [ ] Reading generation
 
 **Deliverable:** API with working simulation.
 
 ---
 
-## Phase 2: Intelligence (Weeks 3-4)
+## Phase 2: AI Integration (Weeks 3-4)
 
-**Goal:** AI features
+**Goal:** AI-powered features
 
-### Week 3: ML Models
-- [ ] Forecasting (simple LSTM or statistical)
-- [ ] Anomaly detection (Isolation Forest)
-- [ ] Recommendation engine (rule-based)
+### Week 3: AI Service
+- [ ] Set up OpenAI/Anthropic client
+- [ ] Build recommendation prompt
+- [ ] Build anomaly explanation prompt
+- [ ] Build chat prompt
 
-### Week 4: Integration
-- [ ] Connect ML to API
-- [ ] Alert system
-- [ ] Recommendation generation
+### Week 4: AI Features
+- [ ] Connect AI to recommendations endpoint
+- [ ] Connect AI to anomaly explanations
+- [ ] Build AI chat endpoint
+- [ ] Add AI-powered forecast
 
-**Deliverable:** AI-powered insights.
+**Deliverable:** AI generates personalized insights.
 
 ---
 
@@ -49,9 +51,10 @@ Python-only stack. Simple and minimal.
 **Goal:** Dashboard
 
 - [ ] Simple HTML/JS dashboard
-- [ ] Energy charts (Chart.js)
-- [ ] Device management UI
+- [ ] Energy charts
 - [ ] Recommendation display
+- [ ] Chat interface
+- [ ] Scenario selector
 
 **Deliverable:** Working dashboard.
 
@@ -64,6 +67,7 @@ Python-only stack. Simple and minimal.
 - [ ] Add scenarios (heating, cooling, vacation)
 - [ ] Gamification (energy score, badges)
 - [ ] Cost estimation
+- [ ] Error handling
 - [ ] Documentation
 
 **Deliverable:** Ready to use.
@@ -77,8 +81,9 @@ Week 1-2    Week 3-4    Week 5-6    Week 7-8
     │           │           │           │
     ▼           ▼           ▼           ▼
 ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-│Backend │→│   ML   │→│Frontend│→│ Polish │
+│Backend │→│   AI   │→│Frontend│→│ Polish │
 └────────┘ └────────┘ └────────┘ └────────┘
+  Sim                               
 ```
 
 ---

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a **simulation-only** AI Energy Efficiency Advisor. All features work with simulated/virtual IoT devices. No physical hardware required.
+Simulation-only AI Energy Advisor. All features powered by AI (LLM).
 
 ---
 
@@ -10,218 +10,152 @@ This is a **simulation-only** AI Energy Efficiency Advisor. All features work wi
 
 ### 1. IoT Device Simulator
 
-**Description**: Built-in engine for creating and managing virtual IoT devices that generate realistic energy data.
+**Description**: Creates virtual devices that generate realistic energy data.
 
 **Simulated Device Types:**
 
-| Device | Generates | Configurable Parameters |
-|--------|-----------|------------------------|
-| Smart Meter | kWh readings, voltage, current | Location, home size, occupancy |
-| Thermostat | Temperature, humidity, HVAC cycles | Mode, setpoint, schedule |
-| Smart Plugs | Power (W), energy (kWh), on/off state | Appliance type, usage patterns |
-| Energy Monitor | Per-circuit power, total consumption | Circuit count, main panel |
+| Device | Generates |
+|--------|-----------|
+| Smart Meter | kWh readings, voltage, current |
+| Thermostat | Temperature, HVAC cycles |
+| Smart Plugs | Power (W), energy (kWh), on/off |
+| Energy Monitor | Per-circuit power, total |
 
 **Simulation Capabilities:**
-- Realistic time-of-day usage patterns
-- Day-of-week variations (weekday vs weekend)
-- Seasonal variations (heating/cooling seasons)
-- Random anomalies (equipment issues, unusual usage)
-- Weather correlation (temperature-based HVAC demand)
-- Occupancy simulation (home/away patterns)
-
-**Data Generation:**
-```
-User Profile + Time Context + Weather → Simulated Readings
-```
+- Realistic time-of-day patterns
+- Day-of-week variations
+- Seasonal adjustments
+- Random anomalies
 
 ---
 
 ### 2. Energy Dashboard
 
-**Description**: Real-time visualization of simulated energy consumption.
+**Description**: Visualize simulated energy consumption.
 
 **Features:**
-- Live power consumption display (watts/kWh)
+- Live power consumption display
 - Historical charts (daily, weekly, monthly)
-- Comparison with previous periods
-- Cost projection based on tariff rates
-- Carbon footprint estimation
-
-**Visualizations:**
-- Line charts for trends
-- Pie charts for device breakdown
-- Heat maps for time-of-day usage
-- Gauge meters for current consumption
+- Cost projection
+- Device breakdown
 
 ---
 
-### 3. Scenario Runner
+### 3. AI-Powered Recommendations
 
-**Description**: Execute preset or custom scenarios to simulate different energy situations.
+**Description**: The AI analyzes your energy data and generates personalized tips.
 
-**Preset Scenarios:**
+**How It Works:**
+```
+Your Data → AI Analysis → Personalized Recommendations
+```
 
-| Scenario | Behavior |
-|----------|----------|
-| Normal Usage | Baseline consumption patterns |
-| High Consumption | Elevated usage to test detection |
-| Seasonal Heating | Winter HVAC patterns |
-| Seasonal Cooling | Summer AC patterns |
-| Weekend Pattern | Different from weekday usage |
-| Vacation Mode | Extended absence simulation |
-| Gradual Increase | Slowly growing consumption |
-| Anomaly Spike | Sudden consumption spike |
-| Anomaly Drop | Unexpected consumption drop |
-| Peak Demand | Time-of-use peak period |
-
-**Custom Scenarios:**
-- Define custom patterns via JSON configuration
-- Adjust time ranges, intensity, and device involvement
-- Inject specific anomalies at defined times
-
----
-
-### 4. AI-Powered Recommendations
-
-**Description**: Intelligent suggestions based on simulated consumption patterns.
-
-**Recommendation Types:**
-
-| Type | Example |
-|------|---------|
-| Behavioral | "AC runs 4+ hours while simulated occupancy is away" |
-| Timing | "Shift dishwasher to after 9 PM for off-peak savings" |
-| Settings | "Raising thermostat 2°F during sleep saves $45/month" |
-| Pattern | "Weekend usage is 40% higher than weekdays" |
-
-**Properties:**
-- Estimated savings (kWh and currency)
-- Confidence score
-- Effort level (Low/Medium/High)
-- Action steps
-
----
-
-### 5. Load Forecasting
-
-**Description**: Predict future energy consumption based on simulated data patterns.
-
-**Capabilities:**
-- 24-hour ahead forecast
-- 7-day forecast with seasonal patterns
-- Monthly trend prediction
-- Peak demand warnings
-
-**Models:**
-- LSTM neural networks
-- Gradient boosting (XGBoost)
-- Weather-correlated predictions
-
----
-
-### 6. Anomaly Detection
-
-**Description**: Identify unusual patterns in simulated energy data.
-
-**Detection Types:**
-| Anomaly | Pattern |
-|---------|---------|
-| Spike | Sudden increase in consumption |
-| Drop | Unexpected decrease |
-| Gradual Change | Slow increase/decrease over time |
-| Time Shift | Usage at unusual times |
-| Pattern Break | Deviation from typical patterns |
+**Example Recommendations:**
+| Situation | AI Recommendation |
+|-----------|-------------------|
+| High AC usage | "Your AC runs 40% more than similar homes. Try raising the thermostat 2°F or using a fan." |
+| Peak hours usage | "40% of your energy is used during peak hours (2-7 PM). Running appliances after 9 PM saves ~$25/month." |
+| Standby power | "Devices in standby cost you $15/month. Unplugging chargers and electronics when not in use saves $180/year." |
 
 **Features:**
-- Real-time anomaly alerts
-- Historical anomaly review
-- Configurable sensitivity thresholds
-- Anomaly explanation and root cause
+- Daily personalized tips
+- Context-aware suggestions
+- Estimated savings for each tip
+- One-click actions
 
 ---
 
-### 7. Alerts & Notifications
+### 4. AI Anomaly Detection
 
-**Description**: Notifications for important simulation events.
+**Description**: AI explains unusual patterns in your energy data.
 
-**Alert Types:**
-| Category | Examples |
-|----------|----------|
-| Usage Alerts | "Daily consumption is 40% higher than average" |
-| Cost Alerts | "Projected to exceed $150 monthly budget" |
-| Anomaly Alerts | "Unusual spike detected - 3x normal consumption" |
-| Savings Alerts | "You saved $25 this week!" |
-| Forecast Alerts | "Peak demand expected tomorrow afternoon" |
+**Anomaly Types:**
+- Spike (sudden increase)
+- Drop (unexpected decrease)
+- Pattern break
 
-**Delivery:**
-- In-app notifications
-- Email digest (optional)
-- Webhook notifications (for integration)
+**AI Explanation Example:**
+> "Your energy usage tripled on Tuesday between 2-4 PM. This coincides with running the electric dryer and oven simultaneously. Consider staggering high-power appliances."
 
 ---
 
-### 8. Gamification
+### 5. AI Forecasting
 
-**Description**: Make simulation-based learning engaging.
+**Description**: AI predicts future consumption and explains trends.
 
 **Features:**
-- Energy Score (0-100)
+- 7-day forecast
+- Monthly bill projection
+- Trend explanations
+- "What if" scenarios
+
+**Example:**
+> "Based on your patterns, you're on track to spend $220 this month (up from $185 last month). The increase is due to higher AC usage during the heatwave. Running AC 2 hours less daily would save ~$35."
+
+---
+
+### 6. AI Chat
+
+**Description**: Ask questions about your energy usage in plain English.
+
+**Examples:**
+- "Why is my bill so high this month?"
+- "How can I reduce energy in my home office?"
+- "What appliances use the most energy?"
+- "Compare my usage to last month"
+
+---
+
+### 7. Scenario Runner
+
+**Description**: Test different energy situations.
+
+**Scenarios:**
+| Scenario | Effect |
+|----------|--------|
+| Normal Usage | Baseline patterns |
+| High Consumption | Elevated usage |
+| Seasonal Heating | Winter HVAC |
+| Seasonal Cooling | Summer AC |
+| Vacation Mode | Reduced usage |
+| Anomaly Spike | Sudden spike |
+
+---
+
+### 8. Cost Analysis
+
+**Description**: Track simulated energy costs.
+
+**Features:**
+- Bill estimation
+- Historical comparison
+- Tariff simulation (flat, time-of-use)
+- Budget alerts
+
+---
+
+### 9. Gamification
+
+**Description**: Stay motivated to save energy.
+
+**Features:**
+- Energy Score (AI-evaluated)
 - Achievement badges
 - Savings challenges
-- Comparison with simulated benchmarks
 - Streak tracking
-
-**Badges:**
-| Badge | Earned By |
-|-------|-----------|
-| Early Bird | Shift usage to off-peak hours |
-| Consistency | Maintain stable usage for 7 days |
-| Saver | Achieve weekly savings target |
-| Investigator | Review 10 anomaly explanations |
-
----
-
-### 9. Cost Analysis
-
-**Description**: Detailed breakdown of simulated energy costs.
-
-**Features:**
-- Current bill estimation
-- Historical cost comparison
-- Tariff rate simulation (flat, time-of-use, tiered)
-- Budget tracking and alerts
-- Cost forecast
-
----
-
-### 10. API
-
-**Description**: REST API for programmatic access to simulation.
-
-**Endpoints:**
-
-| Category | Endpoints |
-|----------|-----------|
-| Devices | POST/GET/PUT/DELETE /devices |
-| Readings | POST /readings, GET /readings/history |
-| Simulation | POST /simulate/start, /simulate/stop, /simulate/scenario |
-| Recommendations | GET /recommendations |
-| Forecasts | GET /forecast |
-| Alerts | GET /alerts |
 
 ---
 
 ## User Management
 
-### User Preferences
-- Custom tariff rates
-- Notification preferences
-- Display units (metric/imperial)
-- Theme (light/dark mode)
+### Preferences
+- Tariff rates
+- Notification settings
+- Display units
 
-### Multi-User Support
-- Multiple simulated properties per user
-- User roles (owner, viewer)
+### Multi-Property
+- Multiple simulated homes
+- Consolidated view
 
 ---
 
@@ -230,8 +164,7 @@ User Profile + Time Context + Weather → Simulated Readings
 | Feature | Free | Pro |
 |---------|------|-----|
 | Simulated Devices | 5 | Unlimited |
-| Historical Data | 30 days | 2 years |
-| Recommendations | 10/month | Unlimited |
+| AI Recommendations | 20/month | Unlimited |
+| AI Chat | No | Yes |
+| Historical Data | 30 days | 1 year |
 | Scenarios | Preset only | Custom |
-| API Access | No | Yes |
-| Alerts | 10/day | Unlimited |

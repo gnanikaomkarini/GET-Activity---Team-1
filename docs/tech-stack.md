@@ -1,8 +1,6 @@
 # Technology Stack
 
-## Simple Python-Only Stack
-
-No Node.js, no Redis. Just Python + database.
+## Simple Python Stack with AI
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -11,14 +9,13 @@ No Node.js, no Redis. Just Python + database.
                           │
 ┌─────────────────────────▼───────────────────────────┐
 │  Backend: Python + FastAPI                           │
-│  - Simulation engine                                 │
-│  - ML models (forecasting, anomaly detection)       │
-│  - API endpoints                                     │
+│  - Simulator engine                                  │
+│  - AI service (OpenAI/Anthropic)                    │
+│  - API endpoints                                    │
 └─────────────────────────┬───────────────────────────┘
                           │
 ┌─────────────────────────▼───────────────────────────┐
 │  Database: SQLite (dev) / PostgreSQL (prod)          │
-│  - Users, devices, readings, recommendations         │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -30,8 +27,8 @@ No Node.js, no Redis. Just Python + database.
 |-------|------------|-----|
 | Backend | Python 3.11 + FastAPI | Simple, async, auto-docs |
 | Database | SQLite (dev) / PostgreSQL (prod) | File-based or scalable |
-| ML | PyTorch, NumPy | Forecasting, anomaly |
-| Frontend | Vanilla JS + Chart.js | No build step, simple |
+| AI | OpenAI GPT-4 or Anthropic Claude | Recommendations, chat |
+| Frontend | Vanilla JS + Chart.js | No build step |
 | Auth | JWT (built into FastAPI) | Simple tokens |
 
 ---
@@ -46,10 +43,11 @@ No Node.js, no Redis. Just Python + database.
 │   ├── schemas.py       # API schemas
 │   ├── auth.py          # JWT auth
 │   ├── simulator.py     # Device simulation
-│   ├── ml/
-│   │   ├── forecast.py  # Forecasting model
-│   │   ├── anomaly.py   # Anomaly detection
-│   │   └── recommend.py # Recommendations
+│   ├── ai/
+│   │   ├── client.py    # AI API client
+│   │   ├── recommend.py # AI recommendations
+│   │   ├── explain.py   # AI anomaly explanations
+│   │   └── chat.py      # AI chat
 │   └── routers/
 │       ├── users.py
 │       ├── devices.py
@@ -70,20 +68,32 @@ uvicorn
 sqlalchemy
 pydantic
 python-jose[cryptography]  # JWT
-pytorch
-numpy
-pandas
+openai>=1.0  # or anthropic
 chart.js
 ```
 
 ---
 
-## Cost (Monthly)
+## AI Service
 
-Free to run locally. For hosting:
+Uses LLMs for:
+
+| Task | Prompt Example |
+|------|----------------|
+| Recommendations | "Based on this user's data, suggest 3 specific ways to reduce their energy bill." |
+| Anomaly Explanation | "Explain why this spike happened and how to prevent it." |
+| Forecasting | "Predict their monthly bill and explain the factors." |
+| Chat | Answer questions about their energy usage." |
+
+---
+
+## Cost (Monthly)
 
 | Component | Cost |
 |-----------|------|
 | Compute | $5-10 (Railway/Render) |
 | Database | Free (SQLite) or $5 (PostgreSQL) |
-| **Total** | **$5-15/month** |
+| AI (OpenAI) | ~$10-50 (depending on usage) |
+| **Total** | **$15-65/month** |
+
+**Note:** AI costs depend on number of requests. Most users will cost <$1/month in AI tokens.

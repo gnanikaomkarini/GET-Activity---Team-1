@@ -1,37 +1,61 @@
 # AI-Based Energy Efficiency Advisor
 
-An intelligent system that **simulates** energy consumption patterns and provides personalized, actionable recommendations to help users understand and optimize energy usage.
+An intelligent system that **simulates** energy consumption and uses **AI** to generate personalized energy-saving recommendations.
 
-## Simulation-Only
+## How It Works
 
-> This project uses **simulated/virtual IoT devices only**. No physical hardware required.
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Simulate   │ ──▶ │  Collect    │ ──▶ │    Ask      │
+│  Energy     │     │  Data       │     │    AI       │
+└─────────────┘     └─────────────┘     └─────────────┘
+                                              │
+                                              ▼
+                                        ┌─────────────┐
+                                        │  Personalized│
+                                        │  Tips       │
+                                        └─────────────┘
+```
 
-- Virtual smart meters with realistic consumption patterns
-- Simulated thermostats with HVAC cycle simulation
-- Virtual appliances with time-of-day usage patterns
-- Scenario runner for testing various energy situations
+1. **Simulate** virtual devices generating realistic energy data
+2. **Collect** consumption patterns over time
+3. **Ask AI** to analyze and suggest improvements
+4. **Get** personalized energy-saving tips
 
 ---
 
 ## Features
 
-- **IoT Simulator** - Create and manage virtual devices
+- **IoT Simulator** - Virtual devices with realistic patterns
 - **Energy Dashboard** - Visualize simulated consumption
-- **Scenario Runner** - Test heating, cooling, vacation patterns
-- **AI Recommendations** - Personalized energy-saving tips
-- **Load Forecasting** - Predict future consumption
-- **Anomaly Detection** - Identify unusual patterns
-- **Cost Analysis** - Track simulated bills and savings
+- **AI Recommendations** - Personalized tips from AI
+- **AI Anomaly Detection** - AI explains unusual patterns
+- **AI Forecasting** - Predict bills and trends
+- **AI Chat** - Ask questions about your energy
+- **Scenario Runner** - Test heating, cooling, vacation
 - **Gamification** - Energy score, badges, challenges
+
+---
+
+## AI Features
+
+Uses LLMs (OpenAI GPT-4 or Anthropic Claude) to:
+
+| Feature | AI Does |
+|---------|---------|
+| Recommendations | "Here are 3 specific ways to reduce your AC usage" |
+| Anomaly Explanation | "Your spike happened because you ran dryer + oven" |
+| Forecasting | "You're on track to spend $220 this month" |
+| Chat | Answer any question about your energy usage |
 
 ---
 
 ## Documentation
 
-- [Architecture](./architecture.md) - System design
-- [Features](./features.md) - Feature specifications
-- [Tech Stack](./tech-stack.md) - Technology recommendations
-- [Roadmap](./roadmap.md) - Implementation plan
+- [Architecture](./architecture.md)
+- [Features](./features.md)
+- [Tech Stack](./tech-stack.md)
+- [Roadmap](./roadmap.md)
 
 ---
 
@@ -39,13 +63,13 @@ An intelligent system that **simulates** energy consumption patterns and provide
 
 ```bash
 # Install dependencies
-npm install
+pip install -r requirements.txt
 
-# Start development
-npm run dev
+# Set your AI API key
+export OPENAI_API_KEY=sk-...
 
-# Run simulator
-cd simulator && python main.py
+# Run the app
+uvicorn app.main:app --reload
 ```
 
-See individual docs for detailed setup instructions.
+Open http://localhost:8000 to see the dashboard.

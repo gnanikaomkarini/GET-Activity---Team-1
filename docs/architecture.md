@@ -1,6 +1,6 @@
 # System Architecture
 
-## Simple Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -11,20 +11,14 @@
 │  Python Backend (FastAPI)                                    │
 │                                                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │   Auth      │  │  Simulator  │  │    ML       │          │
-│  │   (JWT)     │  │   Engine    │  │  (Forecast, │          │
-│  │             │  │             │  │   Anomaly)  │          │
+│  │   Auth      │  │  Simulator  │  │    AI       │          │
+│  │   (JWT)     │  │   Engine    │  │  (LLM)      │          │
 │  └─────────────┘  └─────────────┘  └─────────────┘          │
 │                                                               │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │   API       │  │   Models    │  │ Recommendations│       │
-│  │  Endpoints  │  │  (SQLAlchemy)│  │   Engine    │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-┌─────────────────────────▼───────────────────────────────────┐
-│  SQLite / PostgreSQL                                          │
-│  - users, devices, readings, recommendations                  │
+│  ┌─────────────┐  ┌─────────────┐                            │
+│  │   API       │  │   Database  │                            │
+│  │  Endpoints  │  │  (SQLite)   │                            │
+│  └─────────────┘  └─────────────┘                            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -36,27 +30,38 @@
 
 Generates realistic energy data for virtual devices.
 
-```
-Device Factory → Pattern Generator → Reading Generator
-```
-
 **Patterns:**
 - Time-of-day (low at night, peaks morning/evening)
 - Weekday vs weekend
 - Seasonal (heating/cooling)
 - Random variation (±10%)
 
-### 2. ML Models
+### 2. AI Service (LLM)
 
-| Model | Purpose |
-|-------|---------|
-| Forecasting | Predict next 24h consumption |
-| Anomaly | Detect spikes/drops |
-| Recommendations | Generate energy tips |
+Uses a Large Language Model to:
 
-### 3. API
+| Task | How AI Helps |
+|------|--------------|
+| Recommendations | Generate personalized energy-saving tips |
+| Anomaly Explanation | Explain why usage spiked/dropped |
+| Forecasting | Narrate trends and predict bills |
+| Chat | Answer user questions about energy |
 
-RESTful endpoints:
+**Example:**
+```python
+# AI generates recommendation based on user's data
+response = openai.chat.completions.create(
+    model="gpt-4",
+    messages=[{
+        "role": "user",
+        "content": f"User's AC runs 6+ hours daily. "
+                   f"Monthly bill: $180. "
+                   f"Suggest 3 specific tips to reduce AC usage."
+    }]
+)
+```
+
+### 3. API Endpoints
 
 ```
 POST   /api/auth/register
@@ -64,10 +69,11 @@ POST   /api/auth/login
 GET    /api/devices
 POST   /api/devices
 GET    /api/readings?device_id=...
-POST   /api/readings (simulator writes here)
-GET    /api/recommendations
+POST   /api/readings
+GET    /api/recommendations (AI-generated)
 GET    /api/forecast
 POST   /api/simulator/scenario
+POST   /api/chat (ask AI questions)
 ```
 
 ### 4. Data Models
@@ -76,8 +82,19 @@ POST   /api/simulator/scenario
 User: id, email, password_hash, created_at
 Device: id, user_id, type, name, params, status
 Reading: id, device_id, timestamp, power, energy
-Recommendation: id, user_id, title, description, savings
+Recommendation: id, user_id, title, description, savings, generated_at
 ```
+
+---
+
+## AI Integration
+
+The AI service analyzes user data and generates:
+
+1. **Personalized Tips** - Based on consumption patterns
+2. **Anomaly Explanations** - Why did usage spike?
+3. **Bill Predictions** - Project monthly costs
+4. **Actionable Advice** - Specific steps to save energy
 
 ---
 
@@ -87,16 +104,15 @@ Recommendation: id, user_id, title, description, savings
 - Password hashing (bcrypt)
 - Input validation (Pydantic)
 - SQL injection prevention (SQLAlchemy)
+- API key for AI service stored securely
 
 ---
 
 ## Deployment
 
-Single Python process + SQLite = runs anywhere.
+Single Python process + SQLite.
 
 ```bash
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+OPENAI_API_KEY=sk-... uvicorn app.main:app --reload
 ```
-
-Free hosting: Railway, Render, Fly.io
