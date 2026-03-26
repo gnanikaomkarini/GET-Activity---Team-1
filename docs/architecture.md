@@ -1,269 +1,280 @@
 # System Architecture
 
+## Overview
+
+This is a **simulation-only** architecture. All IoT devices are virtual and data is generated programmatically. No physical hardware or real-world IoT protocols are used.
+
+---
+
 ## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                           CLIENT LAYER                                   │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │
-│  │   Web App   │  │  Mobile App │  │  Dashboard  │  │   Widget    │   │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘   │
-└─────────┼────────────────┼────────────────┼────────────────┼───────────┘
-          │                │                │                │
-          └────────────────┴────────────────┴────────────────┘
-                                    │
-                              API Gateway
-                              (Rate Limiting, Auth)
-                                    │
-┌───────────────────────────────────┼─────────────────────────────────────┐
-│                           SERVICES LAYER                                 │
-│                                                                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                      │
+│  │   Web App   │  │  Dashboard  │  │   Widget    │                      │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘                      │
+└─────────┼────────────────┼────────────────┼───────────────────────────────┘
+          │                │                │
+          └────────────────┴────────────────┘
+                             │
+                       API Gateway
+                       (Auth, Rate Limit)
+                             │
+┌────────────────────────────┼─────────────────────────────────────────────┐
+│                      SERVICES LAYER                                      │
+│                                                                            │
 │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐      │
-│  │  User Service    │  │  Energy Service  │  │  Recommendation  │      │
-│  │  - Auth/Auth     │  │  - Data Ingestion│  │    Service       │      │
-│  │  - Profiles      │  │  - Analytics     │  │  - ML Models     │      │
-│  │  - Preferences   │  │  - Forecasting   │  │  - Tips Engine   │      │
+│  │  User Service    │  │  Energy Service  │  │  Recommendation   │      │
+│  │  - Auth          │  │  - Data Storage  │  │    Service       │      │
+│  │  - Profiles      │  │  - Forecasting   │  │  - ML Models     │      │
+│  │  - Preferences   │  │  - Analytics     │  │  - Tips Engine   │      │
 │  └──────────────────┘  └──────────────────┘  └──────────────────┘      │
-│                                                                          │
+│                                                                            │
 │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐      │
-│  │  Device Service  │  │  Alert Service   │  │  Gamification    │      │
-│  │  - IoT Devices  │  │  - Notifications │  │    Service       │      │
-│  │  - Schedules    │  │  - Alerts        │  │  - Challenges    │      │
-│  │  - Control      │  │  - Reports       │  │  - Achievements  │      │
+│  │ Simulator Service│  │  Alert Service   │  │  Gamification    │      │
+│  │  - Device Sim    │  │  - Notifications │  │    Service       │      │
+│  │  - Scenarios     │  │  - Alerts        │  │  - Challenges    │      │
+│  │  - Data Gen      │  │                  │  │  - Achievements  │      │
 │  └──────────────────┘  └──────────────────┘  └──────────────────┘      │
-│                                                                          │
-└───────────────────────────────────┬─────────────────────────────────────┘
-                                    │
-┌───────────────────────────────────┼─────────────────────────────────────┐
-│                           DATA LAYER                                     │
-│                                                                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌────────────┐  │
-│  │   PostgreSQL │  │   TimescaleDB │  │    Redis     │  │    S3/MinIO│  │
-│  │  (Users/Dev) │  │  (Time Series)│  │   (Cache)    │  │  (Models)  │  │
-│  └──────────────┘  └──────────────┘  └──────────────┘  └────────────┘  │
-│                                                                          │
+│                                                                            │
+└────────────────────────────┼─────────────────────────────────────────────┘
+                             │
+┌────────────────────────────┼─────────────────────────────────────────────┐
+│                        DATA LAYER                                         │
+│                                                                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                   │
+│  │   PostgreSQL │  │   TimescaleDB │  │    Redis     │                   │
+│  │  (Users/Dev) │  │  (Time Series)│  │   (Cache)    │                   │
+│  └──────────────┘  └──────────────┘  └──────────────┘                   │
+│                                                                            │
 │  ┌─────────────────────────────────────────────────────────────────┐    │
 │  │                     ML/AI Infrastructure                         │    │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐               │    │
-│  │  │ Feature Store│  │ Model Reg. │  │  Training   │               │    │
-│  │  │             │  │             │  │  Pipeline   │               │    │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘               │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │    │
+│  │  │ Forecasting │  │  Anomaly    │  │Recommendation│             │    │
+│  │  │   Model     │  │  Detector   │  │    Engine    │             │    │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘             │    │
 │  └─────────────────────────────────────────────────────────────────┘    │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
 
 ## Core Components
 
-### 1. Data Ingestion Pipeline
+### 1. Simulator Service
+
+The central component that generates all energy data virtually.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     Simulated IoT Device Layer                          │
+│                      Simulator Service                                   │
 │                                                                          │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │                    IoT Simulator Service                         │   │
-│  │                                                                  │   │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │   │
-│  │  │Virtual   │  │Virtual   │  │Virtual   │  │Virtual   │        │   │
-│  │  │Smart     │  │Thermo-   │  │Smart     │  │Energy    │        │   │
-│  │  │Meter     │  │stat      │  │Plugs     │  │Monitor   │        │   │
-│  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘        │   │
-│  │       │             │             │             │                │   │
-│  │       └─────────────┴─────────────┴─────────────┘                │   │
-│  │                           │                                      │   │
-│  │                    Data Generator                                │   │
-│  │                    (Realistic patterns)                          │   │
+│  │                      Device Factory                              │   │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │   │
+│  │  │Virtual   │  │Virtual   │  │Virtual   │  │Virtual   │       │   │
+│  │  │Smart     │  │Thermo-   │  │Smart     │  │Energy    │       │   │
+│  │  │Meter     │  │stat      │  │Plugs     │  │Monitor   │       │   │
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘       │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                              │                                           │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    Pattern Engine                                 │   │
+│  │  - Time-of-day patterns                                          │   │
+│  │  - Day-of-week variations                                        │   │
+│  │  - Seasonal adjustments                                           │   │
+│  │  - Weather correlation                                           │   │
+│  │  - Occupancy simulation                                          │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                              │                                           │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    Scenario Manager                               │   │
+│  │  - Preset scenarios (heating, cooling, vacation)                 │   │
+│  │  - Custom scenario configuration                                 │   │
+│  │  - Anomaly injection                                            │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-Smart Meters → MQTT Broker → Kafka → Stream Processing → Time Series DB
-                    ↓
-              IoT Devices → REST API → Message Queue → Processing
 ```
 
-**Components:**
-- **IoT Simulator**: Generates realistic energy data for virtual devices
-- **MQTT Broker** (Mosquitto/EMQX): Handles IoT device connections
-- **Apache Kafka**: Message streaming for high-volume data
-- **Apache Flink/Spark Streaming**: Real-time stream processing
-- **TimescaleDB**: Optimized for time-series data storage
+**Simulation Modes:**
+| Mode | Description |
+|------|-------------|
+| Real-time | Generate readings at configurable intervals (1s-1h) |
+| Batch | Generate historical data for specified date range |
+| Scenario | Run predefined or custom consumption scenario |
 
-### 1b. IoT Device Simulator
+### 2. Data Generation Patterns
 
-The simulator mimics real-world IoT devices for testing and demonstration without physical hardware.
-
-**Simulated Device Types:**
-| Device | Parameters | Generated Data |
-|--------|------------|----------------|
-| Smart Meter | Location, tariff type | kWh readings, voltage, current |
-| Smart Thermostat | Mode, setpoint, location | Temperature, humidity, HVAC cycles |
-| Smart Plugs | Connected appliance type | Power (W), energy (kWh), state |
-| Energy Monitor | Main panel, circuit count | Per-circuit power, total consumption |
-
-**Simulation Features:**
-- Time-of-day usage patterns (realistic behavioral patterns)
-- Day-of-week variations (weekday vs weekend)
-- Seasonal variations (heating/cooling seasons)
-- Random anomalies (equipment issues, unusual usage)
-- Weather correlation (temperature-based HVAC demand)
-- Occupancy simulation (home/away patterns)
-
-**Data Generation Strategy:**
+**Time-of-Day Pattern:**
 ```
-User Profile + Time Context + Weather → Simulated Device Behavior
-                                    ↓
-                              Energy Readings
-                                    ↓
-                              Stored in DB
+12am ─────────────────────────────────────────── 12am
+       │     │           │        │     │
+       │     │           │        │     │
+   Night    Morning    Midday   Evening  Night
+   (Low)   (Rising)   (Peak)   (High)  (Low)
 ```
 
-**API Endpoints for Simulation:**
+**Weekday vs Weekend:**
 ```
-POST   /api/simulator/devices          - Create simulated device
-GET    /api/simulator/devices/:id       - Get device state
-PUT    /api/simulator/devices/:id       - Update device parameters
-POST   /api/simulator/devices/:id/control - Send control command
-DELETE /api/simulator/devices/:id       - Remove device
-POST   /api/simulator/generate          - Generate historical data
-POST   /api/simulator/scenario          - Run preset scenario
+Weekday: Higher morning/evening peaks, daytime work hours
+Weekend: Distributed usage, afternoon peak
 ```
 
-### 2. ML Recommendation Engine
+**Seasonal Adjustment:**
+```
+Winter: +20-40% HVAC, +lighting
+Summer: +30-50% AC
+Spring/Fall: Baseline
+```
+
+### 3. ML Services
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      Recommendation Pipeline                      │
+│                       ML Pipeline                                 │
 │                                                                  │
-│  User Context ──┐                                               │
-│  Device Data ────┼──→ Feature Engineering ──→ ML Model ──→ Tips│
-│  Weather Data ───┘                     │                        │
-│  Historical ────┐                     ▼                        │
-│                  │            Personalization Layer              │
-│                  └──────────→ Priority Scoring                   │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
+│  │  Forecasting │    │   Anomaly    │    │Recommendation│      │
+│  │    Model    │    │   Detector   │    │    Engine    │      │
+│  │   (LSTM)    │    │ (Isolation  │    │ (Rule-based  │      │
+│  │             │    │   Forest)   │    │  + ML)       │      │
+│  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘      │
+│         │                   │                   │               │
+│         └───────────────────┴───────────────────┘               │
+│                             │                                   │
+│                    ┌────────┴────────┐                        │
+│                    │  Recommendation │                        │
+│                    │    Router       │                        │
+│                    └─────────────────┘                        │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Models:**
-- **Consumption Forecasting**: LSTM/Transformer for usage prediction
-- **Anomaly Detection**: Isolation Forest/Autoencoder for unusual patterns
-- **Recommendation Engine**: Collaborative filtering + Content-based
-- **Optimal Timing**: Reinforcement learning for best action times
+### 4. API Gateway
 
-### 3. API Gateway
+- JWT authentication
+- Rate limiting (requests per minute)
+- Request validation (Zod schemas)
+- API versioning (/api/v1, /api/v2)
+- OpenAPI documentation
 
-- Authentication (JWT, OAuth2)
-- Rate limiting and throttling
-- Request validation
-- Load balancing
-- API versioning
-
-### 4. Notification System
-
-```
-Event Trigger → Message Queue → Push/Fetch → User
-                    ↓
-              Email/SMS → SMTP/SMS Gateway
-```
+---
 
 ## Data Models
 
-### User Profile
-```
-User {
-  id: UUID
-  email: string
-  name: string
-  location: GeoLocation
-  utility_provider: string
-  tariff_plan: string
-  preferences: JSON
-  goals: JSON
+### User
+```typescript
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  tariffPlan: 'flat' | 'time-of-use' | 'tiered';
+  preferences: {
+    units: 'metric' | 'imperial';
+    notifications: boolean;
+    currency: string;
+  };
 }
 ```
 
-### Device
-```
-Device {
-  id: UUID
-  user_id: UUID
-  type: enum (smart_meter, thermostat, plug, light, appliance)
-  manufacturer: string
-  model: string
-  location: string
-  capabilities: JSON
-  status: enum (online, offline, error)
+### Simulated Device
+```typescript
+interface SimulatedDevice {
+  id: string;
+  userId: string;
+  type: 'smart_meter' | 'thermostat' | 'plug' | 'energy_monitor';
+  name: string;
+  location: string;
+  parameters: {
+    // Smart Meter
+    homeSize?: number; // sq ft
+    occupancy?: number;
+    
+    // Thermostat
+    mode?: 'heat' | 'cool' | 'auto' | 'off';
+    setpoint?: number;
+    schedule?: Schedule[];
+    
+    // Smart Plug
+    applianceType?: string;
+    wattage?: number;
+    
+    // Energy Monitor
+    circuits?: number;
+  };
+  status: 'active' | 'paused';
 }
 ```
 
 ### Energy Reading
-```
-EnergyReading {
-  device_id: UUID
-  timestamp: DateTime
-  power_watts: float
-  energy_kwh: float
-  voltage: float
-  current: float
-  metadata: JSON
+```typescript
+interface EnergyReading {
+  deviceId: string;
+  timestamp: Date;
+  powerWatts: number;
+  energyKwh: number;
+  voltage?: number;
+  current?: number;
+  metadata: {
+    source: 'simulated';
+    scenario?: string;
+  };
 }
 ```
 
 ### Recommendation
-```
-Recommendation {
-  id: UUID
-  user_id: UUID
-  type: enum (behavioral, upgrade, automation, tariff)
-  title: string
-  description: string
-  estimated_savings_kwh: float
-  estimated_savings_currency: float
-  confidence_score: float
-  priority: int
-  actions: JSON
-  created_at: DateTime
-  expires_at: DateTime
+```typescript
+interface Recommendation {
+  id: string;
+  userId: string;
+  type: 'behavioral' | 'timing' | 'settings' | 'pattern';
+  title: string;
+  description: string;
+  estimatedSavingsKwh: number;
+  estimatedSavingsCurrency: number;
+  confidenceScore: number;
+  effortLevel: 'low' | 'medium' | 'high';
+  actions: string[];
 }
 ```
 
-## Security Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Security Layers                          │
-│                                                                  │
-│  1. Network Security                                            │
-│     - VPC/Private Subnets                                       │
-│     - WAF (Web Application Firewall)                            │
-│     - DDoS Protection                                           │
-│                                                                  │
-│  2. Application Security                                        │
-│     - OAuth 2.0 / OpenID Connect                               │
-│     - JWT with refresh tokens                                   │
-│     - API key management                                        │
-│     - Input validation & sanitization                           │
-│                                                                  │
-│  3. Data Security                                               │
-│     - Encryption at rest (AES-256)                              │
-│     - Encryption in transit (TLS 1.3)                           │
-│     - PII anonymization                                         │
-│     - Audit logging                                             │
-│                                                                  │
-│  4. Compliance                                                  │
-│     - GDPR compliance                                           │
-│     - Energy data privacy                                       │
-│     - SOC 2 readiness                                           │
-└─────────────────────────────────────────────────────────────────┘
+### Scenario
+```typescript
+interface Scenario {
+  id: string;
+  name: string;
+  description: string;
+  duration: 'hourly' | 'daily' | 'weekly';
+  config: {
+    consumptionMultiplier: number;
+    peakHours: [number, number];
+    anomalyType?: 'spike' | 'drop' | 'gradual';
+    anomalyMagnitude?: number;
+  };
+}
 ```
 
-## Scalability Considerations
+---
 
-| Component | Strategy |
+## Security
+
+| Layer | Implementation |
+|-------|----------------|
+| Authentication | JWT with refresh tokens |
+| Authorization | Role-based (owner, viewer) |
+| Data | Encryption at rest, TLS in transit |
+| API | Rate limiting, input validation |
+| Storage | Isolated per-user data |
+
+---
+
+## Scalability
+
+| Component | Approach |
 |-----------|----------|
-| API Servers | Horizontal scaling with auto-scaling groups |
-| Database | Read replicas, sharding for time-series data |
-| Caching | Redis cluster with automatic failover |
-| ML Inference | GPU instances, model quantization, batch processing |
-| Message Queue | Kafka cluster with partitioning |
+| API | Horizontal scaling (stateless) |
+| Database | Connection pooling, read replicas |
+| Cache | Redis with TTL, invalidation |
+| Simulation | Background workers, job queue |
+| ML | Batch inference, model caching |

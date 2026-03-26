@@ -1,310 +1,237 @@
 # Features Specification
 
+## Overview
+
+This is a **simulation-only** AI Energy Efficiency Advisor. All features work with simulated/virtual IoT devices. No physical hardware required.
+
+---
+
 ## Core Features
 
-### 1. Energy Dashboard
+### 1. IoT Device Simulator
 
-**Description**: Real-time and historical visualization of energy consumption.
+**Description**: Built-in engine for creating and managing virtual IoT devices that generate realistic energy data.
 
-**Capabilities:**
-- Live power consumption gauge (watts/kWh)
-- Daily, weekly, monthly, yearly consumption charts
-- Comparison with previous periods (%, kWh saved)
+**Simulated Device Types:**
+
+| Device | Generates | Configurable Parameters |
+|--------|-----------|------------------------|
+| Smart Meter | kWh readings, voltage, current | Location, home size, occupancy |
+| Thermostat | Temperature, humidity, HVAC cycles | Mode, setpoint, schedule |
+| Smart Plugs | Power (W), energy (kWh), on/off state | Appliance type, usage patterns |
+| Energy Monitor | Per-circuit power, total consumption | Circuit count, main panel |
+
+**Simulation Capabilities:**
+- Realistic time-of-day usage patterns
+- Day-of-week variations (weekday vs weekend)
+- Seasonal variations (heating/cooling seasons)
+- Random anomalies (equipment issues, unusual usage)
+- Weather correlation (temperature-based HVAC demand)
+- Occupancy simulation (home/away patterns)
+
+**Data Generation:**
+```
+User Profile + Time Context + Weather → Simulated Readings
+```
+
+---
+
+### 2. Energy Dashboard
+
+**Description**: Real-time visualization of simulated energy consumption.
+
+**Features:**
+- Live power consumption display (watts/kWh)
+- Historical charts (daily, weekly, monthly)
+- Comparison with previous periods
 - Cost projection based on tariff rates
-- Carbon footprint calculation
-- Export reports (PDF, CSV, Excel)
+- Carbon footprint estimation
 
 **Visualizations:**
 - Line charts for trends
 - Pie charts for device breakdown
 - Heat maps for time-of-day usage
 - Gauge meters for current consumption
-- Stack area charts for consumption by category
 
 ---
 
-### 2. AI-Powered Recommendations
+### 3. Scenario Runner
 
-**Description**: Intelligent, personalized suggestions for reducing energy usage.
+**Description**: Execute preset or custom scenarios to simulate different energy situations.
 
-**Recommendation Categories:**
+**Preset Scenarios:**
 
-#### A. Behavioral Recommendations
-| Type | Examples |
-|------|----------|
-| Usage Timing | "Run dishwasher after 9 PM when off-peak rates apply" |
-| Habits | "Your AC runs 4+ hours while you're away" |
+| Scenario | Behavior |
+|----------|----------|
+| Normal Usage | Baseline consumption patterns |
+| High Consumption | Elevated usage to test detection |
+| Seasonal Heating | Winter HVAC patterns |
+| Seasonal Cooling | Summer AC patterns |
+| Weekend Pattern | Different from weekday usage |
+| Vacation Mode | Extended absence simulation |
+| Gradual Increase | Slowly growing consumption |
+| Anomaly Spike | Sudden consumption spike |
+| Anomaly Drop | Unexpected consumption drop |
+| Peak Demand | Time-of-use peak period |
+
+**Custom Scenarios:**
+- Define custom patterns via JSON configuration
+- Adjust time ranges, intensity, and device involvement
+- Inject specific anomalies at defined times
+
+---
+
+### 4. AI-Powered Recommendations
+
+**Description**: Intelligent suggestions based on simulated consumption patterns.
+
+**Recommendation Types:**
+
+| Type | Example |
+|------|---------|
+| Behavioral | "AC runs 4+ hours while simulated occupancy is away" |
+| Timing | "Shift dishwasher to after 9 PM for off-peak savings" |
 | Settings | "Raising thermostat 2°F during sleep saves $45/month" |
-| Maintenance | "HVAC filter last changed 3 months ago" |
+| Pattern | "Weekend usage is 40% higher than weekdays" |
 
-#### B. Automation Recommendations
-| Type | Examples |
-|------|----------|
-| Scheduling | "Set lights to turn off at 11 PM on weekdays" |
-| Presence Detection | "Enable auto-off when no motion detected for 30 min" |
-| Smart Scenes | "Create 'Away' scene to power down non-essential devices" |
-| Triggers | "When solar production peaks, pre-cool the house" |
-
-#### C. Equipment Recommendations
-| Type | Examples |
-|------|----------|
-| Upgrade Suggestions | "Your 15-year-old refrigerator uses 2x more than efficient models" |
-| Sizing | "Consider 16 SEER AC instead of 14 SEER for your climate" |
-| Integration | "Your smart thermostat could coordinate with your solar system" |
-
-#### D. Tariff Optimization
-| Type | Examples |
-|------|----------|
-| Plan Comparison | "Time-of-use plan could save you $120/year" |
-| Peak Avoidance | "Shift 30% of your usage to off-peak to reduce bill by $45" |
-| Demand Response | "Earn credits by reducing usage during grid stress events" |
-
-**Recommendation Properties:**
+**Properties:**
 - Estimated savings (kWh and currency)
-- Confidence score (0-100%)
+- Confidence score
 - Effort level (Low/Medium/High)
-- Payback period for equipment upgrades
-- Action steps with one-click automation
+- Action steps
 
 ---
 
-### 3. Device Management
+### 5. Load Forecasting
 
-**Description**: Connect, monitor, and control smart devices (real or simulated).
-
-**Supported Device Categories:**
-- Smart meters (utility-provided)
-- Smart thermostats (Nest, Ecobee, Honeywell)
-- Smart plugs and power strips
-- Smart lighting (Philips Hue, LIFX, smart switches)
-- Electric vehicle chargers
-- Solar inverters
-- Battery storage systems
-- Whole-home energy monitors (Sense, Emporia)
-
-**Simulated Devices:**
-For testing and development without physical hardware, the system includes virtual IoT devices:
-
-| Simulated Device | Behavior |
-|------------------|----------|
-| Virtual Smart Meter | Generates realistic consumption patterns based on home profile |
-| Virtual Thermostat | Simulates HVAC cycles, temperature changes |
-| Virtual Appliances | Plug loads, lighting, washer/dryer patterns |
-| Virtual Energy Monitor | Simulates whole-home and circuit-level readings |
-
-**Device Features (Simulated):**
-- Real-time simulated monitoring
-- Virtual control (change temperature setpoints, toggle devices)
-- Scheduling and automations (simulated)
-- Energy consumption per simulated device
-- Anomaly injection for testing
-- Scenario presets for demonstration
-- **Note**: All device interactions are simulated - no physical hardware required
-
----
-
-### 4. Load Forecasting
-
-**Description**: Predict future energy consumption using ML.
+**Description**: Predict future energy consumption based on simulated data patterns.
 
 **Capabilities:**
 - 24-hour ahead forecast
-- 7-day forecast with weather integration
+- 7-day forecast with seasonal patterns
 - Monthly trend prediction
 - Peak demand warnings
-- Anomaly alerts for unusual usage
-- Integration with demand response programs
 
-**Models Used:**
+**Models:**
 - LSTM neural networks
 - Gradient boosting (XGBoost)
-- Ensemble methods combining multiple models
-- External factors: weather, calendar, holidays
+- Weather-correlated predictions
 
 ---
 
-### 5. Solar & Renewable Integration
+### 6. Anomaly Detection
 
-**Description**: Monitor and optimize renewable energy production.
+**Description**: Identify unusual patterns in simulated energy data.
 
-**Features:**
-- Real-time solar production tracking
-- Self-consumption rate calculation
-- Excess energy monitoring
-- Battery storage optimization
-- Net metering tracking
-- ROI calculator for solar investments
-- Export vs. consume optimization
-
----
-
-### 6. Cost Analysis & Billing
-
-**Description**: Detailed breakdown of energy costs.
+**Detection Types:**
+| Anomaly | Pattern |
+|---------|---------|
+| Spike | Sudden increase in consumption |
+| Drop | Unexpected decrease |
+| Gradual Change | Slow increase/decrease over time |
+| Time Shift | Usage at unusual times |
+| Pattern Break | Deviation from typical patterns |
 
 **Features:**
-- Current bill estimation
-- Historical bill comparison
-- Tariff rate optimization suggestions
-- Budget alerts and goals
-- Tax credits and rebates tracking
-- Time-of-use cost analysis
-- Demand charge tracking (for commercial)
+- Real-time anomaly alerts
+- Historical anomaly review
+- Configurable sensitivity thresholds
+- Anomaly explanation and root cause
 
 ---
 
 ### 7. Alerts & Notifications
 
-**Description**: Proactive notifications for important events.
+**Description**: Notifications for important simulation events.
 
 **Alert Types:**
 | Category | Examples |
 |----------|----------|
-| Usage Alerts | "Your daily consumption is 40% higher than average" |
-| Cost Alerts | "You're projected to exceed your $150 monthly budget" |
+| Usage Alerts | "Daily consumption is 40% higher than average" |
+| Cost Alerts | "Projected to exceed $150 monthly budget" |
 | Anomaly Alerts | "Unusual spike detected - 3x normal consumption" |
-| Device Alerts | "Living room AC hasn't cycled in 6 hours" |
-| Savings Alerts | "You saved $25 this week compared to last week!" |
-| Weather Alerts | "Heat advisory tomorrow - expect higher AC usage" |
-| Demand Response | "Grid event in 2 hours - reduce usage for bill credits" |
+| Savings Alerts | "You saved $25 this week!" |
+| Forecast Alerts | "Peak demand expected tomorrow afternoon" |
 
-**Delivery Channels:**
-- Push notifications (mobile app)
-- Email digest (daily, weekly)
-- SMS for critical alerts
-- In-app notifications center
+**Delivery:**
+- In-app notifications
+- Email digest (optional)
+- Webhook notifications (for integration)
 
 ---
 
-### 8. Gamification & Engagement
+### 8. Gamification
 
-**Description**: Make energy saving fun and rewarding.
+**Description**: Make simulation-based learning engaging.
 
 **Features:**
-- **Energy Score**: 0-100 score based on efficiency
-- **Savings Challenges**: Monthly goals with badges
-- **Achievements**: Unlock rewards for milestones
-- **Leaderboards**: Compare with similar households
-- **Carbon Counter**: Track CO2 saved
-- **Streaks**: Maintain good habits with streak rewards
-- **Tips of the Day**: Daily energy-saving fact
+- Energy Score (0-100)
+- Achievement badges
+- Savings challenges
+- Comparison with simulated benchmarks
+- Streak tracking
 
-**Gamification Elements:**
-| Element | Description |
-|---------|-------------|
-| Badges | "Early Bird" (shift usage to off-peak), "Green Machine" (100% renewable days) |
-| Points | Earn points for completing actions |
-| Levels | Progress through tiers based on engagement |
-| Rewards | Gift cards, donations to charities, utility credits |
+**Badges:**
+| Badge | Earned By |
+|-------|-----------|
+| Early Bird | Shift usage to off-peak hours |
+| Consistency | Maintain stable usage for 7 days |
+| Saver | Achieve weekly savings target |
+| Investigator | Review 10 anomaly explanations |
 
 ---
 
-### 9. Whole-Home Energy Score
+### 9. Cost Analysis
 
-**Description**: Comprehensive efficiency rating for the home.
-
-**Scoring Factors:**
-- Overall consumption vs. benchmark
-- Peak vs. off-peak usage ratio
-- Device efficiency ratings
-- Automation adoption rate
-- Renewable energy utilization
-- Consistency of savings
-
-**Output:**
-- Letter grade (A+ to F)
-- Breakdown by category
-- Year-over-year improvement
-- Comparison with neighbors (anonymized)
-
----
-
-### 10. API & Integrations
-
-**Description**: Developer API and third-party integrations.
-
-**API Capabilities:**
-- RESTful API for all features
-- Webhook support for real-time events
-- OAuth 2.0 for third-party access
-- OpenAPI/Swagger documentation
-- Rate limiting with quota management
-
-**Integrations:**
-- Amazon Alexa / Google Home *(future)*
-- Apple HomeKit *(future)*
-- IFTTT / Zapier *(future)*
-- Utility company portals *(future)*
-- Home automation platforms *(future)*
-- Energy monitoring apps *(future)*
-
-### 10b. IoT Simulator Interface
-
-**Description**: Built-in tool for simulating IoT devices and generating test energy data.
+**Description**: Detailed breakdown of simulated energy costs.
 
 **Features:**
-| Feature | Description |
-|---------|-------------|
-| Device Creator | Create virtual devices with configurable parameters |
-| Data Generator | Generate historical energy data for any time period |
-| Scenario Runner | Execute preset scenarios (high usage, anomaly, savings test) |
-| Real-time Simulation | Stream live simulated readings to the system |
-| Anomaly Injection | Introduce spikes, drops, or unusual patterns |
-| Batch Generation | Create data for multiple devices simultaneously |
-
-**Preset Scenarios:**
-| Scenario | Use Case |
-|----------|----------|
-| Normal Usage | Baseline data for comparison |
-| High Consumption | Test anomaly detection and alerts |
-| Seasonal Heating | Winter HVAC patterns |
-| Seasonal Cooling | Summer AC patterns |
-| Weekend Pattern | Different from weekday usage |
-| Vacation Mode | Extended absence simulation |
-| Gradual Increase | Detect growing consumption issues |
-
-**Simulation Controls UI:**
-- Drag-and-drop device placement on home map
-- Slider controls for temperature, power levels
-- Real-time chart of simulated readings
-- Event log of all simulated activities
+- Current bill estimation
+- Historical cost comparison
+- Tariff rate simulation (flat, time-of-use, tiered)
+- Budget tracking and alerts
+- Cost forecast
 
 ---
 
-## User Management Features
+### 10. API
 
-### 11. Multi-Property Support
-- Manage multiple homes or properties
-- Property comparison view
-- Consolidated dashboard
-- Per-property recommendations
+**Description**: REST API for programmatic access to simulation.
 
-### 12. User Preferences
+**Endpoints:**
+
+| Category | Endpoints |
+|----------|-----------|
+| Devices | POST/GET/PUT/DELETE /devices |
+| Readings | POST /readings, GET /readings/history |
+| Simulation | POST /simulate/start, /simulate/stop, /simulate/scenario |
+| Recommendations | GET /recommendations |
+| Forecasts | GET /forecast |
+| Alerts | GET /alerts |
+
+---
+
+## User Management
+
+### User Preferences
 - Custom tariff rates
 - Notification preferences
 - Display units (metric/imperial)
-- Language and accessibility
 - Theme (light/dark mode)
 
-### 13. Family & Access Control
-- Multi-user households
-- Role-based access (owner, member, guest)
-- Usage visibility controls
-- Parental controls
+### Multi-User Support
+- Multiple simulated properties per user
+- User roles (owner, viewer)
 
 ---
 
-## Premium Features (SaaS Model)
+## Pricing Tiers
 
-| Feature | Free | Pro | Enterprise |
-|---------|------|-----|------------|
-| Dashboard | Basic | Full | Full |
-| Recommendations | 10/month | Unlimited | Unlimited |
-| Devices | 5 | Unlimited | Unlimited |
-| Historical Data | 30 days | 2 years | Unlimited |
-| Alerts | 10/day | Unlimited | Unlimited |
-| Reports | Basic | Advanced | Custom |
-| API Access | No | Yes | Yes |
-| Multi-property | No | 3 | Unlimited |
-| White-label | No | No | Yes |
-| Dedicated Support | No | Email | Priority |
+| Feature | Free | Pro |
+|---------|------|-----|
+| Simulated Devices | 5 | Unlimited |
+| Historical Data | 30 days | 2 years |
+| Recommendations | 10/month | Unlimited |
+| Scenarios | Preset only | Custom |
+| API Access | No | Yes |
+| Alerts | 10/day | Unlimited |

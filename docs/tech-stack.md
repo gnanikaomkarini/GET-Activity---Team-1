@@ -1,214 +1,133 @@
-# Technology Stack Recommendations
+# Technology Stack
 
-## Full-Stack Architecture
+## Overview
+
+Simulation-only stack. No physical IoT devices or real-world protocols.
+
+---
+
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              FRONTEND                                   │
-│                                                                          │
-│  Primary: React 18+ with TypeScript                                     │
-│  Mobile:  React Native or Flutter                                        │
-│  State:   Zustand or Redux Toolkit                                       │
-│  UI:      Tailwind CSS + Radix UI / shadcn/ui                            │
-│  Charts:  Recharts, Apache ECharts, D3.js                                │
-│  Animations: Framer Motion                                               │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              BACKEND                                    │
-│                                                                          │
-│  API:      Node.js + Fastify  OR  Python + FastAPI                      │
-│  Auth:     JWT + Refresh Tokens + OAuth2                                 │
-│  Queue:    BullMQ (Redis) or Celery (Redis/RabbitMQ)                     │
-│  Cron:     node-cron or FastAPI Background Tasks                         │
-│  Search:   Meilisearch or Elasticsearch                                  │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           AI/ML LAYER                                    │
-│                                                                          │
-│  Framework: PyTorch or TensorFlow                                        │
-│  Training:  MLflow for experiment tracking                               │
-│  Serving:   FastAPI + BentoML or TorchServe                              │
-│  Features:  Feature Store (Feast or Tecton)                             │
-│  Data:      Apache Spark for ETL                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                            DATA LAYER                                    │
-│                                                                          │
-│  Primary DB:    PostgreSQL 15+                                           │
-│  Time Series:   TimescaleDB (PostgreSQL extension)                       │
-│  Cache:         Redis 7+                                                 │
-│  Search:        Meilisearch or Elasticsearch                              │
-│  Object Store:  S3 or MinIO (for ML models, exports)                     │
-│  Message Queue: Apache Kafka or Redis Streams                            │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          INFRASTRUCTURE                                  │
-│                                                                          │
-│  Container:     Docker + Docker Compose                                  │
-│  Orchestration: Kubernetes (EKS/GKE/AKS) or Docker Swarm                  │
-│  IaC:           Terraform or Pulumi                                       │
-│  CI/CD:         GitHub Actions or GitLab CI                              │
-│  Monitoring:    Prometheus + Grafana                                     │
-│  Logging:       ELK Stack or Loki + Grafana                              │
-│  Tracing:       Jaeger or OpenTelemetry                                  │
-└─────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                    FRONTEND                          │
+│  React 18 + TypeScript + Tailwind + Recharts        │
+└─────────────────────────┬───────────────────────────┘
+                          │
+┌─────────────────────────▼───────────────────────────┐
+│                    BACKEND                           │
+│  Node.js/Fastify  │  Python/FastAPI                  │
+│  Prisma ORM       │  SQLAlchemy                       │
+└─────────────────────────┬───────────────────────────┘
+                          │
+┌─────────────────────────▼───────────────────────────┐
+│                  SIMULATOR + ML                      │
+│  Python: Simulation Engine, ML Models                 │
+└─────────────────────────┬───────────────────────────┘
+                          │
+┌─────────────────────────▼───────────────────────────┐
+│                    DATA LAYER                        │
+│  PostgreSQL + TimescaleDB + Redis                    │
+└─────────────────────────────────────────────────────┘
 ```
 
-## Technology Choices by Component
+---
+
+## Tech Stack
 
 ### Frontend
 
-| Layer | Technology | Rationale |
-|-------|------------|-----------|
-| Framework | React 18+ | Component reusability, vast ecosystem |
-| Language | TypeScript | Type safety, better DX |
-| Mobile | React Native | Code sharing with web |
-| State | Zustand | Lightweight, simple API |
-| UI Library | Tailwind + Radix | Customizable, accessible components |
-| Charts | Recharts | React-native, customizable |
-| Forms | React Hook Form + Zod | Performance, validation |
-| HTTP | Axios or Fetch | API communication |
-| Auth | Auth.js (NextAuth) | Secure auth flows |
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Framework | React 18+ or Next.js 14 | SPA or SSR |
+| Language | TypeScript | Type safety |
+| State | Zustand | Lightweight |
+| UI | Tailwind CSS + shadcn/ui | Customizable |
+| Charts | Recharts | Energy visualizations |
+| Forms | React Hook Form + Zod | Validation |
+| HTTP | Axios | API calls |
+| Auth | JWT (self-hosted) or Clerk | Authentication |
 
-**Alternative Frontend Stack (if using Next.js):**
-- Next.js 14+ (App Router)
-- Server Components for data fetching
-- API Routes for backend
-- Vercel deployment ready
+### Backend
 
-### Backend API
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Runtime | Node.js 20+ or Python 3.11 | Choose one |
+| API | Fastify (Node) or FastAPI (Python) | Fast, typed |
+| ORM | Prisma (Node) or SQLAlchemy (Python) | Database access |
+| Validation | Zod (Node) or Pydantic (Python) | Runtime types |
+| Queue | BullMQ or Celery | Background jobs |
+| Cache | Redis 7+ | Sessions, rate limit |
 
-| Layer | Technology | Rationale |
-|-------|------------|-----------|
-| Runtime | Node.js 20+ | Non-blocking I/O, JSON native |
-| Framework | Fastify | Performance, schema validation |
-| Language | TypeScript | Type consistency |
-| ORM | Prisma | Type-safe queries, migrations |
-| Validation | Zod | Runtime validation |
-| Auth | Passport.js or Auth0 | OAuth/social login |
+### Simulator Engine
 
-**Alternative Backend (Python):**
-| Layer | Technology | Rationale |
-|-------|------------|-----------|
-| Framework | FastAPI | Async, auto-docs, type hints |
-| ORM | SQLAlchemy + Alembic | Mature, flexible |
-| Validation | Pydantic | Data validation |
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Core | Python 3.11+ | Pattern generation |
+| Data | NumPy + Pandas | Efficient computation |
+| Scheduling | APScheduler | Real-time simulation |
+| Config | JSON/YAML | Scenario definitions |
 
-### Machine Learning
+### ML Services
 
-| Layer | Technology | Rationale |
-|-------|------------|-----------|
-| Core | Python 3.11+ | ML ecosystem |
-| ML Framework | PyTorch 2.0 | Flexibility, research |
-| Time Series | PyTorch Forecasting | Specialized for energy |
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Framework | PyTorch | Forecasting, anomaly detection |
 | Training | MLflow | Experiment tracking |
-| Feature Store | Feast | Feature management |
-| Model Serving | BentoML or FastAPI | Easy deployment |
-| AutoML | AutoGluon | Quick model building |
-
-**IoT Device Simulator:**
-| Layer | Technology | Rationale |
-|-------|------------|-----------|
-| Simulation Engine | Custom Python service | Full control over patterns |
-| Data Generation | NumPy + Pandas | Efficient batch generation |
-| Scenario Management | JSON-based configs | Easy scenario creation |
-| Real-time Stream | asyncio + aiohttp | Live data simulation |
-| MQTT Simulation | mosquitto (test mode) | Mimic real device protocols |
-
-**ML Models to Implement:**
-1. **Consumption Forecasting**: LSTM, Transformer
-2. **Anomaly Detection**: Isolation Forest, Autoencoder
-3. **Recommendation Engine**: Matrix Factorization, Neural Collaborative Filtering
-4. **Appliance Disaggregation**: NILM (Neural NILM), GNN
+| Serving | FastAPI | Model endpoints |
+| Time Series | PyTorch Forecasting | Pre-built models |
 
 ### Data Storage
 
 | Type | Technology | Use Case |
 |------|------------|----------|
-| Simulation Data | SQLite (dev) / PostgreSQL | Store simulated readings temporarily |
-| Relational | PostgreSQL 15+ | User data, devices, recommendations |
-| Time Series | TimescaleDB | Energy readings, metrics |
-| Cache | Redis 7+ | Sessions, rate limiting, leaderboard |
-| Search | Meilisearch | Full-text search, autocomplete |
-| Object | S3/MinIO | Files, ML models, exports |
-| Graph | Neo4j | Device relationships, recommendations graph |
+| Relational | PostgreSQL 15+ | Users, devices, settings |
+| Time Series | TimescaleDB | Energy readings |
+| Cache | Redis 7+ | Sessions, rate limits |
+| Object | S3 or local | Exports, reports |
 
-### Message Queue & Streaming
+---
 
-| Type | Technology | Use Case |
-|------|------------|----------|
-| Message Queue | Redis Streams or RabbitMQ | Async tasks, notifications |
-| Streaming | Apache Kafka | High-volume IoT data ingestion |
-| Stream Processing | Apache Flink or Spark Streaming | Real-time aggregations |
+## ML Models
 
-### Infrastructure & DevOps
+| Model | Algorithm | Purpose |
+|-------|-----------|---------|
+| Forecasting | LSTM, XGBoost | Predict future consumption |
+| Anomaly | Isolation Forest | Detect unusual patterns |
+| Recommendations | Rule-based + ML | Generate energy tips |
 
-| Category | Technology | Rationale |
-|----------|------------|-----------|
-| Cloud | AWS / GCP / Azure | Managed services, scalability |
-| Container | Docker | Consistent environments |
-| Orchestration | Kubernetes | Auto-scaling, resilience |
-| IaC | Terraform | Infrastructure as code |
-| CI/CD | GitHub Actions | Git integration, fast |
-| Monitoring | Prometheus + Grafana | Metrics and visualization |
-| Logging | ELK Stack | Centralized logging |
-| Error Tracking | Sentry | Error monitoring |
+---
 
-## Development Tools
+## Infrastructure
 
-| Category | Tool |
-|----------|------|
-| IDE | VS Code or WebStorm |
-| API Testing | Postman or Insomnia |
-| Database | DBeaver or TablePlus |
-| Design | Figma |
-| Documentation | Notion or Confluence |
-| Project Management | Linear or Jira |
+| Category | Technology | Notes |
+|----------|------------|-------|
+| Container | Docker + Docker Compose | Local dev |
+| CI/CD | GitHub Actions | Auto deploy |
+| Monitoring | Prometheus + Grafana | Optional for MVP |
+| Hosting | Railway, Render, Vercel | Simple deployment |
 
-## Third-Party Services
+---
 
-| Category | Service | Purpose |
-|----------|---------|---------|
-| Weather | OpenWeather API | Weather data for forecasting |
-| Maps | Mapbox or Google Maps | Location features |
-| SMS | Twilio | SMS notifications |
-| Email | SendGrid | Transactional emails |
-| Analytics | Posthog or Mixpanel | Product analytics |
-| Auth | Auth0 or Clerk | Authentication (if outsourcing) |
-
-## Cost Estimation (Monthly)
-
-| Component | Estimate (1000 users) |
-|-----------|----------------------|
-| Compute (API + Workers) | $200-400 |
-| Database | $100-200 |
-| Cache | $50-100 |
-| ML Inference | $100-300 |
-| Storage | $50-100 |
-| Bandwidth | $50-100 |
-| Monitoring | $50-100 |
-| **Total** | **$600-1300** |
-
-## Quick Start Stack (MVP)
-
-For rapid prototyping, use:
+## Quick Start (MVP)
 
 ```
-Frontend: Next.js 14 (App Router)
-Backend:  Next.js API Routes (serverless)
-Database: PostgreSQL (Neon or Supabase)
-Cache:    Vercel KV (Redis)
-ML:       Python + FastAPI (separate service)
-Auth:     Clerk or Auth.js
-Hosting:  Vercel + Railway/Render
+Frontend:  Next.js 14 (Vercel)
+Backend:   Next.js API Routes
+Database:  PostgreSQL (Supabase/Neon)
+Simulator: Python + FastAPI (Railway)
+Auth:      Clerk
+Hosting:   Vercel + Railway
 ```
 
-This stack minimizes infrastructure management while maintaining scalability.
+---
+
+## Cost Estimate (1000 users/month)
+
+| Component | Cost |
+|-----------|------|
+| Compute | $50-100 |
+| Database | $20-50 |
+| Cache | $10-20 |
+| Storage | $10-20 |
+| **Total** | **$90-190** |
