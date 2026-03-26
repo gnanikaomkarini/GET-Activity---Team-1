@@ -4,31 +4,22 @@ from typing import List
 
 from ..database import get_db
 from ..models.device import Device
-from ..models.user import User
-from ..schemas.device import DeviceCreate, DeviceUpdate, DeviceResponse
-from ..auth import get_current_user
+from ..schemas.device import DeviceCreate, DeviceResponse
 
 router = APIRouter(prefix="/api/devices", tags=["devices"])
 
 
 @router.get("", response_model=List[DeviceResponse])
-def list_devices(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
-    devices = db.query(Device).filter(Device.user_id == current_user.id).all()
+def list_devices(db: Session = Depends(get_db)):
+    devices = db.query(Device).all()
     return devices
 
 
 @router.post("", response_model=DeviceResponse)
-def create_device(
-    device: DeviceCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
+def create_device(device: DeviceCreate, db: Session = Depends(get_db)):
     db_device = Device(
-        user_id=current_user.id,
-        type=device.type,
         name=device.name,
+        type=device.type,
         location=device.location,
         params=device.params,
     )
@@ -39,58 +30,18 @@ def create_device(
 
 
 @router.get("/{device_id}", response_model=DeviceResponse)
-def get_device(
-    device_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    device = (
-        db.query(Device)
-        .filter(Device.id == device_id, Device.user_id == current_user.id)
-        .first()
-    )
+def get_device(device_id: int, db: Session = Depends(get_db)):
+    device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
-    return device
-
-
-@router.put("/{device_id}", response_model=DeviceResponse)
-def update_device(
-    device_id: int,
-    device_update: DeviceUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    device = (
-        db.query(Device)
-        .filter(Device.id == device_id, Device.user_id == current_user.id)
-        .first()
-    )
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
-
-    for key, value in device_update.model_dump(exclude_unset=True).items():
-        setattr(device, key, value)
-
-    db.commit()
-    db.refresh(device)
     return device
 
 
 @router.delete("/{device_id}")
-def delete_device(
-    device_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    device = (
-        db.query(Device)
-        .filter(Device.id == device_id, Device.user_id == current_user.id)
-        .first()
-    )
+def delete_device(device_id: int, db: Session = Depends(get_db)):
+    device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
-
     db.delete(device)
     db.commit()
     return {"message": "Device deleted"}

@@ -8,15 +8,13 @@ class Device(Base):
     __tablename__ = "devices"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
     type = Column(
         String, nullable=False
     )  # smart_meter, thermostat, plug, energy_monitor
-    name = Column(String, nullable=False)
-    location = Column(String)
-    params = Column(JSON, default={})  # device-specific parameters
-    status = Column(String, default="active")  # active, paused
+    location = Column(String, default="Home")
+    params = Column(JSON, default={})
+    status = Column(String, default="active")
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User", back_populates="devices")
     readings = relationship("Reading", back_populates="device")

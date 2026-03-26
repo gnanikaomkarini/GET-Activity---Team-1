@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from .database import engine, Base
-from .routers import auth_router, devices_router, readings_router, simulation_router
+from .routers import devices_router, readings_router, simulation_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,13 +22,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router)
 app.include_router(devices_router)
 app.include_router(readings_router)
 app.include_router(simulation_router)
 
-if os.path.exists("frontend"):
-    app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+if os.path.exists("../frontend"):
+    app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
 
 
 @app.get("/api/health")

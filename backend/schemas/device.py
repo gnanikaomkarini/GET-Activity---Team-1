@@ -1,29 +1,21 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, List, Dict, Any
 
 
-class DeviceBase(BaseModel):
-    type: str  # smart_meter, thermostat, plug, energy_monitor
+class DeviceCreate(BaseModel):
+    type: str
     name: str
-    location: Optional[str] = None
+    location: Optional[str] = "Home"
     params: Dict[str, Any] = {}
 
 
-class DeviceCreate(DeviceBase):
-    pass
-
-
-class DeviceUpdate(BaseModel):
-    name: Optional[str] = None
-    location: Optional[str] = None
-    params: Optional[Dict[str, Any]] = None
-    status: Optional[str] = None
-
-
-class DeviceResponse(DeviceBase):
+class DeviceResponse(BaseModel):
     id: int
-    user_id: int
+    name: str
+    type: str
+    location: str
+    params: Dict[str, Any]
     status: str
     created_at: datetime
 
