@@ -2,148 +2,87 @@
 
 ## Overview
 
-Simulation-only implementation. No physical IoT devices.
+Python-only stack. Simple and minimal.
 
 ---
 
-## Phase 1: MVP (Weeks 1-6)
+## Phase 1: Foundation (Weeks 1-2)
 
-**Goal:** Basic simulation with energy tracking
+**Goal:** Working app with simulation
 
-### Week 1-2: Project Setup
-- [ ] Initialize repository (Next.js or React + Fastify)
-- [ ] Set up Docker environment
-- [ ] Create database schema (users, devices, readings)
-- [ ] Implement authentication (JWT)
-- [ ] Deploy staging environment
+### Week 1: Backend + Database
+- [ ] Set up FastAPI project
+- [ ] Create database models (users, devices, readings)
+- [ ] Implement JWT auth
+- [ ] Basic CRUD endpoints
 
-### Week 3-4: Simulator Engine
-- [ ] Build device factory (smart meter, thermostat, plugs)
-- [ ] Implement time-of-day patterns
-- [ ] Add weekday/weekend variations
-- [ ] Add seasonal adjustments
-- [ ] Create scenario manager
+### Week 2: Simulator + API
+- [ ] Build device simulator
+- [ ] Time-of-day patterns
+- [ ] CRUD endpoints for devices
+- [ ] Reading ingestion endpoint
 
-### Week 5-6: Frontend Dashboard
-- [ ] Authentication UI
+**Deliverable:** API with working simulation.
+
+---
+
+## Phase 2: Intelligence (Weeks 3-4)
+
+**Goal:** AI features
+
+### Week 3: ML Models
+- [ ] Forecasting (simple LSTM or statistical)
+- [ ] Anomaly detection (Isolation Forest)
+- [ ] Recommendation engine (rule-based)
+
+### Week 4: Integration
+- [ ] Connect ML to API
+- [ ] Alert system
+- [ ] Recommendation generation
+
+**Deliverable:** AI-powered insights.
+
+---
+
+## Phase 3: Frontend (Weeks 5-6)
+
+**Goal:** Dashboard
+
+- [ ] Simple HTML/JS dashboard
+- [ ] Energy charts (Chart.js)
 - [ ] Device management UI
-- [ ] Real-time energy display
-- [ ] Historical charts
-- [ ] Scenario selector
+- [ ] Recommendation display
 
-**Deliverable:** Users can create simulated devices and view generated energy data.
+**Deliverable:** Working dashboard.
 
 ---
 
-## Phase 2: Intelligence (Weeks 7-12)
+## Phase 4: Polish (Weeks 7-8)
 
-**Goal:** AI-powered insights and recommendations
+**Goal:** Launch-ready
 
-### Week 7-8: ML Infrastructure
-- [ ] Set up Python ML environment
-- [ ] Build forecasting model (LSTM)
-- [ ] Implement anomaly detection
-- [ ] Create ML API service
+- [ ] Add scenarios (heating, cooling, vacation)
+- [ ] Gamification (energy score, badges)
+- [ ] Cost estimation
+- [ ] Documentation
 
-### Week 9-10: Recommendations
-- [ ] Design recommendation types
-- [ ] Build rule-based generator
-- [ ] Implement savings calculator
-- [ ] Create recommendation UI
-
-### Week 11-12: Alerts & Notifications
-- [ ] Build anomaly alerts
-- [ ] Implement cost alerts
-- [ ] Add notification system
-- [ ] Create alert dashboard
-
-**Deliverable:** Users receive AI-generated tips and anomaly alerts.
-
----
-
-## Phase 3: Engagement (Weeks 13-18)
-
-**Goal:** Gamification and polish
-
-### Week 13-14: Gamification
-- [ ] Build energy score algorithm
-- [ ] Implement badges and achievements
-- [ ] Create savings challenges
-- [ ] Add streak tracking
-
-### Week 15-16: Cost Analysis
-- [ ] Bill estimation
-- [ ] Tariff simulation (flat, TOU, tiered)
-- [ ] Budget tracking
-- [ ] Cost comparison
-
-### Week 17-18: Polish
-- [ ] Performance optimization
-- [ ] Responsive design
-- [ ] Accessibility
-- [ ] Export reports (CSV, PDF)
-
-**Deliverable:** Engaging experience with gamification and cost tracking.
-
----
-
-## Phase 4: Launch (Weeks 19-24)
-
-**Goal:** Production readiness
-
-### Week 19-20: Infrastructure
-- [ ] Set up production environment
-- [ ] Implement rate limiting
-- [ ] Add monitoring
-- [ ] Set up backups
-
-### Week 21-22: API & Docs
-- [ ] Complete API documentation
-- [ ] Build admin dashboard
-- [ ] Add user management
-- [ ] Implement quotas
-
-### Week 23-24: Launch
-- [ ] Security audit
-- [ ] Load testing
-- [ ] Bug fixes
-- [ ] Public release
-
-**Deliverable:** Production-ready system.
+**Deliverable:** Ready to use.
 
 ---
 
 ## Timeline
 
 ```
-Week 0    Week 6    Week 12   Week 18   Week 24
-   │        │        │        │        │
-   ▼        ▼        ▼        ▼        ▼
-┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐
-│ MVP │→│ INT │→│ ENG │→│LAUNCH│
-└─────┘ └─────┘ └─────┘ └─────┘
-  Sim     ML +      Game     Prod
-  Core    Alerts
+Week 1-2    Week 3-4    Week 5-6    Week 7-8
+    │           │           │           │
+    ▼           ▼           ▼           ▼
+┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
+│Backend │→│   ML   │→│Frontend│→│ Polish │
+└────────┘ └────────┘ └────────┘ └────────┘
 ```
 
 ---
 
-## Team (MVP)
+## Team
 
-| Role | Count |
-|------|-------|
-| Frontend | 1 |
-| Backend | 1 |
-| ML Engineer | 0.5 |
-| **Total** | **2-3** |
-
----
-
-## Key Metrics
-
-| Metric | Target |
-|--------|--------|
-| API response time | <200ms |
-| Simulation accuracy | Realistic patterns |
-| Recommendation relevance | >80% helpful |
-| User activation | >50% |
+1 developer can complete this in 8 weeks.
