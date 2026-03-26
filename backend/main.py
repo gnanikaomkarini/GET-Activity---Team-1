@@ -1,93 +1,24 @@
-import os
-import sys
+from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from typing import List, Optional
+from pydantic import BaseModel
+from datetime import datetime
 import hashlib
 import json
-from datetime import datetime
-from typing import Optional, List
 
-from fastapi import FastAPI, Depends, HTTPException, Query
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import (
-    create_engine,
-    Column,
-    Integer,
-    String,
-    Float,
-    ForeignKey,
-    DateTime,
-    JSON,
-    Boolean,
+from database import (
+    get_db,
+    Household,
+    Device,
+    Reading,
+    Analysis,
+    SimulationRun,
 )
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-from pydantic import BaseModel
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.dirname(BASE_DIR)
-sys.path.insert(0, BASE_DIR)
-sys.path.insert(0, PARENT_DIR)
-
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", f"sqlite:///{os.path.join(BASE_DIR, 'energy_advisor.db')}"
-)
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-class Device(Base):
-    __tablename__ = "devices"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    type = Column(String, nullable=False)
-    location = Column(String, default="Home")
-    params = Column(JSON, default={})
-    status = Column(String, default="active")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    readings = relationship("Reading", back_populates="device")
-    analyses = relationship("Analysis", back_populates="device")
-
-
-class Reading(Base):
-    __tablename__ = "readings"
-    id = Column(Integer, primary_key=True, index=True)
-    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
-    power_watts = Column(Float)
-    energy_kwh = Column(Float)
-    voltage = Column(Float)
-    current = Column(Float)
-    meta = Column(JSON, default={})
-    device = relationship("Device", back_populates="readings")
-
-
-class Analysis(Base):
-    __tablename__ = "analyses"
-    id = Column(Integer, primary_key=True, index=True)
-    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
-    readings_hash = Column(String, nullable=False)
-    analysis_data = Column(JSON, nullable=False)
-    readings_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    cached = Column(Boolean, default=True)
-    device = relationship("Device", back_populates="analyses")
-
-
-Base.metadata.create_all(bind=engine)
+from simulator import simulator
 
 app = FastAPI(title="Energy Efficiency Advisor", version="1.0.0")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -95,6 +26,27 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Schemas
+class HouseholdCreate(BaseModel):
+    name: str = "My Home"
+    size_sqft: int = 1500
+    occupants: int = 4
+    location: str = "Unknown"
+    tariff_rate: float = 0.12
+
+
+class HouseholdResponse(BaseModel):
+    id: int
+    name: str
+    size_sqft: int
+    occupants: int
+    location: str
+    tariff_rate: float
+
+    class Config:
+        from_attributes = True
 
 
 class DeviceCreate(BaseModel):
@@ -106,6 +58,7 @@ class DeviceCreate(BaseModel):
 
 class DeviceResponse(BaseModel):
     id: int
+    household_id: int
     name: str
     type: str
     location: str
@@ -123,8 +76,6 @@ class ReadingResponse(BaseModel):
     timestamp: datetime
     power_watts: float
     energy_kwh: float
-    voltage: Optional[float] = None
-    current: Optional[float] = None
 
     class Config:
         from_attributes = True
@@ -149,80 +100,19 @@ class AnalysisResponse(BaseModel):
         from_attributes = True
 
 
-import random
+class SimulationRunResponse(BaseModel):
+    id: int
+    device_id: int
+    scenario: str
+    duration_hours: int
+    readings_count: int
+    avg_power: float
+    total_energy: float
+    summary: Optional[str]
+    created_at: datetime
 
-
-class Simulator:
-    def __init__(self):
-        self.scenarios = {
-            "normal": lambda p, t: 1.0,
-            "high_consumption": lambda p, t: 1.8,
-            "heating": lambda p, t: 1.5,
-            "cooling": lambda p, t: 1.7,
-            "vacation": lambda p, t: 0.3,
-            "weekend": lambda p, t: 1.1,
-            "anomaly_spike": lambda p, t: 3.0,
-            "anomaly_drop": lambda p, t: 0.2,
-        }
-
-    def generate_reading(self, device_type: str, params: dict, timestamp=None):
-        if timestamp is None:
-            timestamp = datetime.utcnow()
-        hour = timestamp.hour
-        base_power = {
-            "smart_meter": 500,
-            "thermostat": 1000,
-            "plug": 200,
-            "energy_monitor": 600,
-        }.get(device_type, 500)
-
-        if 7 <= hour <= 9:
-            mult = 2.5
-        elif 17 <= hour <= 21:
-            mult = 3.0
-        elif 22 <= hour <= 6:
-            mult = 0.4
-        else:
-            mult = 1.2
-
-        power = base_power * mult * random.uniform(0.9, 1.1)
-        return {
-            "power_watts": round(power, 2),
-            "energy_kwh": round(power / 1000 / 60, 4),
-            "voltage": round(random.uniform(118, 122), 1),
-            "current": round(power / 120, 2),
-        }
-
-    def generate_historical(self, device_type: str, params: dict, days: int = 7):
-        readings = []
-        now = datetime.utcnow()
-        for day in range(days):
-            for hour in range(24):
-                for minute in [0, 30]:
-                    ts = now - timedelta(days=day, hours=23 - hour, minutes=minute)
-                    reading = self.generate_reading(device_type, params, ts)
-                    reading["timestamp"] = ts
-                    readings.append(reading)
-        return readings
-
-    def run_scenario(
-        self, device_type: str, params: dict, scenario: str, hours: int = 24
-    ):
-        readings = []
-        now = datetime.utcnow()
-        scenario_func = self.scenarios.get(scenario, self.scenarios["normal"])
-        for i in range(hours * 2):
-            ts = now - timedelta(minutes=(hours * 60 - i * 30))
-            reading = self.generate_reading(device_type, params, ts)
-            reading["power_watts"] *= scenario_func(params, ts)
-            reading["energy_kwh"] *= scenario_func(params, ts)
-            reading["timestamp"] = ts
-            readings.append(reading)
-        return readings
-
-
-simulator = Simulator()
-from datetime import timedelta
+    class Config:
+        from_attributes = True
 
 
 def compute_hash(readings: list) -> str:
@@ -234,14 +124,54 @@ def health():
     return {"status": "healthy"}
 
 
+# Household endpoints
+@app.get("/api/household", response_model=HouseholdResponse)
+def get_household(db: Session = Depends(get_db)):
+    household = db.query(Household).first()
+    if not household:
+        household = Household()
+        db.add(household)
+        db.commit()
+        db.refresh(household)
+    return household
+
+
+@app.post("/api/household", response_model=HouseholdResponse)
+def save_household(data: HouseholdCreate, db: Session = Depends(get_db)):
+    household = db.query(Household).first()
+    if not household:
+        household = Household()
+        db.add(household)
+
+    household.name = data.name
+    household.size_sqft = data.size_sqft
+    household.occupants = data.occupants
+    household.location = data.location
+    household.tariff_rate = data.tariff_rate
+    household.updated_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(household)
+    return household
+
+
+# Device endpoints
 @app.get("/api/devices", response_model=List[DeviceResponse])
-def list_devices(db=Depends(get_db)):
+def list_devices(db: Session = Depends(get_db)):
     return db.query(Device).all()
 
 
 @app.post("/api/devices", response_model=DeviceResponse)
-def create_device(device: DeviceCreate, db=Depends(get_db)):
+def create_device(device: DeviceCreate, db: Session = Depends(get_db)):
+    household = db.query(Household).first()
+    if not household:
+        household = Household()
+        db.add(household)
+        db.commit()
+        db.refresh(household)
+
     db_device = Device(
+        household_id=household.id,
         name=device.name,
         type=device.type,
         location=device.location,
@@ -253,16 +183,8 @@ def create_device(device: DeviceCreate, db=Depends(get_db)):
     return db_device
 
 
-@app.get("/api/devices/{device_id}", response_model=DeviceResponse)
-def get_device(device_id: int, db=Depends(get_db)):
-    device = db.query(Device).filter(Device.id == device_id).first()
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
-    return device
-
-
 @app.delete("/api/devices/{device_id}")
-def delete_device(device_id: int, db=Depends(get_db)):
+def delete_device(device_id: int, db: Session = Depends(get_db)):
     device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
@@ -271,9 +193,10 @@ def delete_device(device_id: int, db=Depends(get_db)):
     return {"message": "Device deleted"}
 
 
+# Reading endpoints
 @app.get("/api/readings", response_model=List[ReadingResponse])
 def get_readings(
-    device_id: Optional[int] = None, limit: int = 1000, db=Depends(get_db)
+    device_id: Optional[int] = None, limit: int = 1000, db: Session = Depends(get_db)
 ):
     query = db.query(Reading)
     if device_id:
@@ -282,20 +205,48 @@ def get_readings(
 
 
 @app.delete("/api/readings/{device_id}")
-def delete_readings(device_id: int, db=Depends(get_db)):
+def delete_readings(device_id: int, db: Session = Depends(get_db)):
     db.query(Reading).filter(Reading.device_id == device_id).delete()
     db.commit()
     return {"message": "Readings deleted"}
 
 
+# Simulation endpoints
 @app.post("/api/simulate/generate")
-def generate_readings(device_id: int, count: int = 96, db=Depends(get_db)):
+def generate_readings(
+    device_id: int,
+    count: int = 96,
+    household_id: int = 1,
+    db: Session = Depends(get_db),
+):
     device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
+
+    household = db.query(Household).filter(Household.id == household_id).first()
+    params = device.params.copy() if device.params else {}
+    if household:
+        params["size_sqft"] = household.size_sqft
+        params["occupants"] = household.occupants
+        params["tariff_rate"] = household.tariff_rate
+
+    # Clear old readings
+    db.query(Reading).filter(Reading.device_id == device_id).delete()
+
+    household_obj = (
+        {
+            "size_sqft": household.size_sqft if household else 1500,
+            "occupants": household.occupants if household else 4,
+            "tariff_rate": household.tariff_rate if household else 0.12,
+        }
+        if household
+        else None
+    )
+
     data = simulator.generate_historical(
-        device.type, device.params, max(1, count // 48 + 1)
+        device.type, params, max(1, count // 48 + 1), household_obj
     )[:count]
+
     for r in data:
         reading = Reading(
             device_id=device_id,
@@ -303,22 +254,51 @@ def generate_readings(device_id: int, count: int = 96, db=Depends(get_db)):
             energy_kwh=r["energy_kwh"],
             voltage=r.get("voltage"),
             current=r.get("current"),
-            meta={"source": "simulator"},
+            meta={"source": "simulator", "household_id": household_id},
             timestamp=r["timestamp"],
         )
         db.add(reading)
+
     db.commit()
     return {"message": f"Generated {len(data)} readings", "count": len(data)}
 
 
 @app.post("/api/simulate/scenario")
 def run_scenario(
-    device_id: int, scenario: str, duration_hours: int = 24, db=Depends(get_db)
+    device_id: int,
+    scenario: str,
+    duration_hours: int = 48,
+    household_id: int = 1,
+    db: Session = Depends(get_db),
 ):
     device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
-    data = simulator.run_scenario(device.type, device.params, scenario, duration_hours)
+
+    household = db.query(Household).filter(Household.id == household_id).first()
+    params = device.params.copy() if device.params else {}
+    if household:
+        params["size_sqft"] = household.size_sqft
+        params["occupants"] = household.occupants
+        params["tariff_rate"] = household.tariff_rate
+
+    # Clear old readings
+    db.query(Reading).filter(Reading.device_id == device_id).delete()
+
+    household_obj = (
+        {
+            "size_sqft": household.size_sqft if household else 1500,
+            "occupants": household.occupants if household else 4,
+            "tariff_rate": household.tariff_rate if household else 0.12,
+        }
+        if household
+        else None
+    )
+
+    data = simulator.run_scenario(
+        device.type, params, scenario, duration_hours, household_obj
+    )
+
     for r in data:
         reading = Reading(
             device_id=device_id,
@@ -326,19 +306,72 @@ def run_scenario(
             energy_kwh=r["energy_kwh"],
             voltage=r.get("voltage"),
             current=r.get("current"),
-            meta={"source": "simulator", "scenario": scenario},
+            meta={
+                "source": "simulator",
+                "scenario": scenario,
+                "household_id": household_id,
+            },
             timestamp=r["timestamp"],
         )
         db.add(reading)
+
     db.commit()
-    return {"message": f"Ran scenario '{scenario}'", "count": len(data)}
+
+    # Calculate summary
+    avg_power = sum(r["power_watts"] for r in data) / len(data)
+    total_energy = sum(r["energy_kwh"] for r in data)
+
+    cost = total_energy * (household.tariff_rate if household else 0.12)
+
+    summary = f"Ran {scenario} scenario for {duration_hours} hours. "
+    summary += f"Generated {len(data)} readings. "
+    summary += f"Avg power: {avg_power:.0f}W. Total energy: {total_energy:.1f}kWh. "
+    summary += f"Estimated cost: ${cost:.2f}"
+
+    # Save simulation run
+    sim_run = SimulationRun(
+        device_id=device_id,
+        scenario=scenario,
+        duration_hours=duration_hours,
+        readings_count=len(data),
+        avg_power=avg_power,
+        total_energy=total_energy,
+        summary=summary,
+    )
+    db.add(sim_run)
+    db.commit()
+
+    return {
+        "message": f"Ran scenario '{scenario}'",
+        "count": len(data),
+        "avg_power": avg_power,
+        "total_energy": total_energy,
+        "estimated_cost": cost,
+        "sim_run_id": sim_run.id,
+    }
 
 
+@app.get("/api/simulation-runs", response_model=List[SimulationRunResponse])
+def get_simulation_runs(
+    device_id: Optional[int] = None, limit: int = 50, db: Session = Depends(get_db)
+):
+    query = db.query(SimulationRun)
+    if device_id:
+        query = query.filter(SimulationRun.device_id == device_id)
+    return query.order_by(SimulationRun.created_at.desc()).limit(limit).all()
+
+
+# Device readings with cache check
 @app.get("/api/devices/{device_id}/readings")
-def get_device_readings(device_id: int, limit: int = 200, db=Depends(get_db)):
+def get_device_readings(
+    device_id: int, limit: int = 200, db: Session = Depends(get_db)
+):
     device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
+
+    household = db.query(Household).filter(Household.id == device.household_id).first()
+
     readings = (
         db.query(Reading)
         .filter(Reading.device_id == device_id)
@@ -362,20 +395,26 @@ def get_device_readings(device_id: int, limit: int = 200, db=Depends(get_db)):
         )
         .first()
     )
+
     return {
         "readings": readings_data,
         "readings_hash": readings_hash,
         "readings_count": len(readings_data),
         "device_name": device.name,
+        "household": {
+            "size_sqft": household.size_sqft if household else 1500,
+            "occupants": household.occupants if household else 4,
+            "tariff_rate": household.tariff_rate if household else 0.12,
+            "location": household.location if household else "Unknown",
+        }
+        if household
+        else None,
         "cached_analysis": existing.analysis_data if existing else None,
     }
 
 
 @app.post("/api/analysis", response_model=AnalysisResponse)
-def save_analysis(req: AnalysisRequest, db=Depends(get_db)):
-    device = db.query(Device).filter(Device.id == req.device_id).first()
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
+def save_analysis(req: AnalysisRequest, db: Session = Depends(get_db)):
     existing = (
         db.query(Analysis)
         .filter(
@@ -384,12 +423,14 @@ def save_analysis(req: AnalysisRequest, db=Depends(get_db)):
         )
         .first()
     )
+
     if existing:
         existing.analysis_data = req.analysis_data
         existing.created_at = datetime.utcnow()
         db.commit()
         db.refresh(existing)
         return existing
+
     analysis = Analysis(
         device_id=req.device_id,
         readings_hash=req.readings_hash,
@@ -403,12 +444,66 @@ def save_analysis(req: AnalysisRequest, db=Depends(get_db)):
     return analysis
 
 
-if os.path.exists(os.path.join(PARENT_DIR, "frontend")):
-    app.mount(
-        "/",
-        StaticFiles(directory=os.path.join(PARENT_DIR, "frontend"), html=True),
-        name="frontend",
+@app.get("/api/analysis")
+def get_analysis(db: Session = Depends(get_db)):
+    all_readings = db.query(Reading).order_by(Reading.timestamp.desc()).limit(200).all()
+    household = db.query(Household).first()
+    device_count = db.query(Device).count()
+    readings_data = [
+        {
+            "power_watts": r.power_watts,
+            "energy_kwh": r.energy_kwh,
+            "timestamp": r.timestamp.isoformat(),
+        }
+        for r in all_readings
+    ]
+
+    if not readings_data:
+        return {
+            "readings_count": 0,
+            "devices_count": device_count,
+            "analysis": None,
+            "household": {
+                "size_sqft": household.size_sqft if household else 1500,
+                "occupants": household.occupants if household else 4,
+            }
+            if household
+            else None,
+        }
+
+    readings_hash = compute_hash(readings_data)
+    existing = (
+        db.query(Analysis).filter(Analysis.readings_hash == readings_hash).first()
     )
+
+    if existing:
+        return {
+            "readings_count": len(readings_data),
+            "devices_count": device_count,
+            "analysis": existing.analysis_data,
+            "cached": True,
+            "household": {
+                "size_sqft": household.size_sqft if household else 1500,
+                "occupants": household.occupants if household else 4,
+                "tariff_rate": household.tariff_rate if household else 0.12,
+            }
+            if household
+            else None,
+        }
+
+    return {
+        "readings_count": len(readings_data),
+        "devices_count": device_count,
+        "analysis": None,
+        "cached": False,
+        "household": {
+            "size_sqft": household.size_sqft if household else 1500,
+            "occupants": household.occupants if household else 4,
+            "tariff_rate": household.tariff_rate if household else 0.12,
+        }
+        if household
+        else None,
+    }
 
 
 if __name__ == "__main__":
