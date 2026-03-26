@@ -2,92 +2,69 @@
 
 ## Overview
 
-Python + AI (LLM). Simple 8-week build.
+Python + Puter.js (Claude AI). Simple 4-week build.
 
 ---
 
-## Phase 1: Foundation (Weeks 1-2)
+## Phase 1: Foundation (Week 1)
 
-**Goal:** Working app with simulation
+**Goal:** Working simulation
 
-### Week 1: Backend + Database
 - [ ] Set up FastAPI project
-- [ ] Create database models
-- [ ] Implement JWT auth
-- [ ] Basic CRUD endpoints
-
-### Week 2: Simulator
-- [ ] Build device simulator
-- [ ] Time-of-day patterns
-- [ ] CRUD endpoints for devices
+- [ ] Create database models (devices, readings)
+- [ ] Build simulator engine
+- [ ] Device CRUD endpoints
 - [ ] Reading generation
 
-**Deliverable:** API with working simulation.
+---
+
+## Phase 2: AI Integration (Week 2)
+
+**Goal:** Claude-powered analysis
+
+- [ ] Frontend with Puter.js
+- [ ] Call Claude with energy data
+- [ ] Parse JSON response
+- [ ] Display analysis
 
 ---
 
-## Phase 2: AI Integration (Weeks 3-4)
+## Phase 3: Caching (Week 3)
 
-**Goal:** AI-powered features
+**Goal:** Efficient AI usage
 
-### Week 3: AI Service
-- [ ] Set up OpenAI/Anthropic client
-- [ ] Build recommendation prompt
-- [ ] Build anomaly explanation prompt
-- [ ] Build chat prompt
-
-### Week 4: AI Features
-- [ ] Connect AI to recommendations endpoint
-- [ ] Connect AI to anomaly explanations
-- [ ] Build AI chat endpoint
-- [ ] Add AI-powered forecast
-
-**Deliverable:** AI generates personalized insights.
+- [ ] Add Analysis model
+- [ ] Hash readings
+- [ ] Cache results
+- [ ] Return cached when same data
 
 ---
 
-## Phase 3: Frontend (Weeks 5-6)
-
-**Goal:** Dashboard
-
-- [ ] Simple HTML/JS dashboard
-- [ ] Energy charts
-- [ ] Recommendation display
-- [ ] Chat interface
-- [ ] Scenario selector
-
-**Deliverable:** Working dashboard.
-
----
-
-## Phase 4: Polish (Weeks 7-8)
+## Phase 4: Polish (Week 4)
 
 **Goal:** Launch-ready
 
-- [ ] Add scenarios (heating, cooling, vacation)
-- [ ] Gamification (energy score, badges)
-- [ ] Cost estimation
-- [ ] Error handling
+- [ ] Dashboard UI
+- [ ] Scenarios
+- [ ] Energy score
 - [ ] Documentation
-
-**Deliverable:** Ready to use.
 
 ---
 
 ## Timeline
 
 ```
-Week 1-2    Week 3-4    Week 5-6    Week 7-8
-    │           │           │           │
-    ▼           ▼           ▼           ▼
+Week 1      Week 2      Week 3      Week 4
+   │           │           │           │
+   ▼           ▼           ▼           ▼
 ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-│Backend │→│   AI   │→│Frontend│→│ Polish │
+│Backend │→│   AI   │→│ Caching│→│ Polish │
 └────────┘ └────────┘ └────────┘ └────────┘
-  Sim                               
+  Sim                              
 ```
 
 ---
 
 ## Team
 
-1 developer can complete this in 8 weeks.
+1 developer can complete in 4 weeks.

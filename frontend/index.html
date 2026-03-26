@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Energy Advisor</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://js.puter.com/v2/"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
@@ -14,6 +15,7 @@
         .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px; border-radius: 12px; margin-bottom: 24px; }
         .header h1 { font-size: 28px; margin-bottom: 8px; }
         .header p { opacity: 0.9; font-size: 16px; }
+        .header .ai-badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-left: 12px; }
         
         .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .card h2 { font-size: 18px; color: #333; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
@@ -29,6 +31,7 @@
         .btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
         .btn-primary { background: #10b981; color: white; }
         .btn-primary:hover { background: #059669; transform: translateY(-1px); }
+        .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
         .btn-secondary { background: #6b7280; color: white; }
         .btn-secondary:hover { background: #4b5563; }
         .btn-sm { padding: 8px 16px; font-size: 13px; }
@@ -67,8 +70,8 @@
         .nav button.active { background: #10b981; color: white; border-color: #10b981; }
         
         .loading { text-align: center; padding: 40px; color: #666; }
-        .loading::after { content: '...'; animation: dots 1.5s infinite; }
-        @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60%, 100% { content: '...'; } }
+        .loading .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #e5e7eb; border-top-color: #10b981; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         .forecast { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
         .forecast-item { background: #f9fafb; padding: 16px; border-radius: 10px; }
@@ -78,6 +81,8 @@
         .trend.up { background: #fee2e2; color: #dc2626; }
         .trend.down { background: #dcfce7; color: #16a34a; }
         .trend.stable { background: #e5e7eb; color: #666; }
+        
+        .cached-badge { background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px; }
         
         canvas { max-height: 300px; }
         
@@ -90,12 +95,14 @@
         .modal h3 { margin-bottom: 20px; }
         .modal input, .modal select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+        
+        .error { background: #fee2e2; color: #dc2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Energy Efficiency Advisor</h1>
+            <h1>Energy Efficiency Advisor <span class="ai-badge">Powered by Claude AI</span></h1>
             <p>AI-powered energy simulation and personalized recommendations</p>
         </div>
         
@@ -106,19 +113,21 @@
             <button data-view="scenarios">Scenarios</button>
         </nav>
         
+        <div id="error-container"></div>
+        
         <div id="dashboard-view">
             <div class="grid" id="stats-grid">
                 <div class="stat">
                     <div class="stat-value" id="current-power">--</div>
-                    <div class="stat-label">Current Power (W)</div>
+                    <div class="stat-label">Avg Power (W)</div>
                 </div>
                 <div class="stat">
                     <div class="stat-value" id="daily-kwh">--</div>
-                    <div class="stat-label">Daily Usage (kWh)</div>
+                    <div class="stat-label">Daily (kWh)</div>
                 </div>
                 <div class="stat">
                     <div class="stat-value" id="monthly-cost">$--</div>
-                    <div class="stat-label">Est. Monthly Cost</div>
+                    <div class="stat-label">Est. Monthly</div>
                 </div>
                 <div class="stat grade">
                     <div class="stat-value" id="energy-grade">--</div>
@@ -132,9 +141,9 @@
             </div>
             
             <div class="card">
-                <h2>Quick Recommendations</h2>
+                <h2>Quick Recommendations <span id="recs-cached" class="cached-badge" style="display:none;">Cached</span></h2>
                 <div id="quick-recs">
-                    <div class="loading">Loading recommendations</div>
+                    <div class="loading"><span class="spinner"></span>Loading recommendations</div>
                 </div>
             </div>
         </div>
@@ -158,7 +167,7 @@
             <div class="card">
                 <h2>AI Energy Analysis</h2>
                 <div id="analysis-content">
-                    <div class="loading">Analyzing your energy data</div>
+                    <div class="loading"><span class="spinner"></span>Analyzing energy data</div>
                 </div>
             </div>
         </div>
@@ -166,7 +175,7 @@
         <div id="scenarios-view" class="hidden">
             <div class="card">
                 <h2>Run Simulation Scenarios</h2>
-                <p style="color: #666; margin-bottom: 20px;">Test different energy usage scenarios to see how they affect your consumption and recommendations.</p>
+                <p style="color: #666; margin-bottom: 20px;">Test different energy usage scenarios.</p>
                 
                 <div class="scenario-btns">
                     <button class="scenario-btn active" data-scenario="normal">Normal Usage</button>
@@ -212,6 +221,12 @@
         let energyChart = null;
         let selectedScenario = 'normal';
         let currentDevices = [];
+        let currentAnalysis = null;
+        
+        function showError(msg) {
+            document.getElementById('error-container').innerHTML = `<div class="error">${msg}</div>`;
+            setTimeout(() => document.getElementById('error-container').innerHTML = '', 5000);
+        }
         
         // Navigation
         document.querySelectorAll('.nav button').forEach(btn => {
@@ -244,14 +259,14 @@
                 const data = await api('/analysis');
                 
                 if (data.readings_count > 0) {
-                    const analysis = data.analysis;
+                    currentAnalysis = data.analysis;
                     
-                    document.getElementById('current-power').textContent = Math.round(analysis.summary.average_power_watts || 0);
-                    document.getElementById('daily-kwh').textContent = (analysis.summary.daily_kwh || 0).toFixed(1);
-                    document.getElementById('monthly-cost').textContent = '$' + Math.round(analysis.summary.monthly_cost_estimate || 0);
-                    document.getElementById('energy-grade').textContent = analysis.score?.grade || '--';
+                    document.getElementById('current-power').textContent = Math.round(data.analysis.summary.average_power_watts || 0);
+                    document.getElementById('daily-kwh').textContent = (data.analysis.summary.daily_kwh || 0).toFixed(1);
+                    document.getElementById('monthly-cost').textContent = '$' + Math.round(data.analysis.summary.monthly_cost_estimate || 0);
+                    document.getElementById('energy-grade').textContent = data.analysis.score?.grade || '--';
                     
-                    const recs = analysis.recommendations?.slice(0, 3) || [];
+                    const recs = data.analysis.recommendations?.slice(0, 3) || [];
                     document.getElementById('quick-recs').innerHTML = recs.length ? recs.map(r => `
                         <div class="recommendation ${r.priority || 'medium'}">
                             <h3>${r.title}</h3>
@@ -264,7 +279,7 @@
                                 ${(r.actions || []).map(a => `<span>${a}</span>`).join('')}
                             </div>
                         </div>
-                    `).join('') : '<p style="color: #666;">Add devices and generate data to get recommendations.</p>';
+                    `).join('') : '<p style="color: #666;">No recommendations yet.</p>';
                     
                     const readings = await api('/readings?limit=100');
                     updateChart(readings);
@@ -273,6 +288,7 @@
                 }
             } catch (err) {
                 console.error('Dashboard error:', err);
+                showError('Failed to load dashboard');
             }
         }
         
@@ -347,6 +363,7 @@
             btn.disabled = true;
             
             await api(`/simulate/generate?device_id=${deviceId}&count=96`);
+            await runAiAnalysis(deviceId);
             await loadDashboard();
             
             btn.textContent = 'Generate Data';
@@ -360,92 +377,195 @@
             loadDevices();
         }
         
-        async function loadAnalysis() {
-            const content = document.getElementById('analysis-content');
-            content.innerHTML = '<div class="loading">Analyzing energy data</div>';
+        async function runAiAnalysis(deviceId) {
+            const btn = event?.target;
+            if (btn) { btn.textContent = 'AI Analyzing...'; btn.disabled = true; }
             
             try {
-                const data = await api('/analysis');
-                const a = data.analysis;
+                const data = await api(`/devices/${deviceId}/readings`);
                 
-                if (data.readings_count === 0) {
-                    content.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>No data to analyze. Add a device and generate readings first!</p></div>';
+                if (data.cached_analysis) {
+                    console.log('Using cached analysis');
+                    await saveAnalysisToBackend(deviceId, data.readings_hash, data.cached_analysis, data.readings_count);
                     return;
                 }
                 
-                content.innerHTML = `
-                    <div class="grid" style="margin-bottom: 24px;">
-                        <div class="stat">
-                            <div class="stat-value">${Math.round(a.summary.average_power_watts)}</div>
-                            <div class="stat-label">Avg Power (W)</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">${Math.round(a.summary.peak_power_watts)}</div>
-                            <div class="stat-label">Peak Power (W)</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">${a.summary.daily_kwh.toFixed(1)}</div>
-                            <div class="stat-label">Daily kWh</div>
-                        </div>
-                        <div class="stat grade">
-                            <div class="stat-value">${a.score?.grade || '--'}</div>
-                            <div class="stat-label">Score</div>
-                        </div>
-                    </div>
-                    
-                    <h3 style="margin: 20px 0 12px;">📈 Forecast</h3>
-                    <div class="forecast">
-                        <div class="forecast-item">
-                            <div class="label">Projected Monthly</div>
-                            <div class="value">${a.forecast.projected_monthly_kwh.toFixed(0)} kWh</div>
-                            <div class="trend ${a.forecast.trend}">${a.forecast.trend}</div>
-                        </div>
-                        <div class="forecast-item">
-                            <div class="label">Est. Monthly Cost</div>
-                            <div class="value">$${a.forecast.projected_monthly_cost.toFixed(0)}</div>
-                        </div>
-                        <div class="forecast-item">
-                            <div class="label">Confidence</div>
-                            <div class="value">${a.forecast.confidence}</div>
-                        </div>
-                    </div>
-                    <p style="margin-top: 12px; color: #666; font-size: 14px;">${a.forecast.explanation}</p>
-                    
-                    ${a.anomalies?.length ? `
-                        <h3 style="margin: 24px 0 12px;">⚠️ Anomalies Detected</h3>
-                        ${a.anomalies.map(an => `
-                            <div class="anomaly">
-                                <h3>${an.type.toUpperCase()}: ${an.description}</h3>
-                                <p>${an.recommendation}</p>
-                                <p class="cause">Possible cause: ${an.possible_cause}</p>
-                            </div>
-                        `).join('')}
-                    ` : ''}
-                    
-                    <h3 style="margin: 24px 0 12px;">💡 Recommendations</h3>
-                    ${a.recommendations?.map(r => `
-                        <div class="recommendation ${r.priority}">
-                            <h3>[${r.priority?.toUpperCase()}] ${r.title}</h3>
-                            <p>${r.description}</p>
-                            <div class="recommendation-meta">
-                                <span>💡 Save ${r.estimated_savings_kwh} kWh/mo</span>
-                                <span>💰 $${r.estimated_savings_currency}/mo</span>
-                            </div>
-                            <div class="recommendation-actions">
-                                ${r.actions.map(a => `<span>${a}</span>`).join('')}
-                            </div>
-                        </div>
-                    `).join('') || '<p style="color: #666;">No recommendations yet.</p>'}
-                    
-                    <h3 style="margin: 24px 0 12px;">📊 Score Breakdown</h3>
-                    <div class="card" style="background: #f9fafb;">
-                        <p style="font-size: 16px;">${a.score?.breakdown || 'No data'}</p>
-                        <p style="font-size: 48px; font-weight: bold; color: #10b981; margin: 16px 0;">${a.score?.value || 0}/100</p>
-                    </div>
-                `;
+                if (data.readings_count < 5) {
+                    showError('Need more readings. Generate some data first!');
+                    return;
+                }
+                
+                const analysis = await callClaudeAI(data);
+                
+                await saveAnalysisToBackend(deviceId, data.readings_hash, analysis, data.readings_count);
+                
+                document.getElementById('recs-cached').style.display = 'none';
+                
             } catch (err) {
-                content.innerHTML = '<p style="color: #ef4444;">Error loading analysis. Please try again.</p>';
+                console.error('AI Error:', err);
+                showError('AI analysis failed: ' + err.message);
+            } finally {
+                if (btn) { btn.textContent = 'Generate Data'; btn.disabled = false; }
             }
+        }
+        
+        async function callClaudeAI(data) {
+            const prompt = `Analyze this energy data and return a comprehensive analysis.
+
+Device: ${data.device_name}
+Readings count: ${data.readings_count}
+
+Return ONLY valid JSON (no markdown, no explanation):
+{
+  "summary": {
+    "average_power_watts": number,
+    "peak_power_watts": number,
+    "daily_kwh": number,
+    "monthly_cost_estimate": number,
+    "description": "2-3 sentence overview"
+  },
+  "forecast": {
+    "projected_monthly_kwh": number,
+    "projected_monthly_cost": number,
+    "trend": "increasing|decreasing|stable",
+    "confidence": "high|medium|low",
+    "explanation": "Why this trend"
+  },
+  "anomalies": [
+    {"type": "spike|drop|pattern_break", "description": "What happened", "possible_cause": "Likely reason", "recommendation": "What to do"}
+  ],
+  "recommendations": [
+    {"type": "behavioral|timing|settings", "title": "Short title", "description": "What to do", "estimated_savings_kwh": number, "estimated_savings_currency": number, "actions": ["step1", "step2"], "priority": "high|medium|low"}
+  ],
+  "score": {"value": 0-100, "grade": "A|B|C|D|F", "breakdown": "Brief assessment"}
+}`;
+
+            const response = await puter.ai.chat(prompt, { model: 'claude-sonnet-4-6' });
+            const text = response.message.content[0].text;
+            return JSON.parse(text);
+        }
+        
+        async function saveAnalysisToBackend(deviceId, readingsHash, analysisData, readingsCount) {
+            await api('/analysis', {
+                method: 'POST',
+                body: {
+                    device_id: deviceId,
+                    readings_hash: readingsHash,
+                    analysis_data: analysisData,
+                    readings_count: readingsCount
+                }
+            });
+        }
+        
+        async function loadAnalysis() {
+            const content = document.getElementById('analysis-content');
+            content.innerHTML = '<div class="loading"><span class="spinner"></span>Loading analysis</div>';
+            
+            try {
+                const devices = await api('/devices');
+                if (devices.length === 0) {
+                    content.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>Add a device first!</p></div>';
+                    return;
+                }
+                
+                const data = await api(`/devices/${devices[0].id}/readings`);
+                
+                if (data.cached_analysis) {
+                    renderAnalysis(data.cached_analysis);
+                    return;
+                }
+                
+                if (data.readings_count < 5) {
+                    content.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>Need more data. Generate readings first!</p><button class="btn btn-primary" onclick="generateReadings(' + devices[0].id + ')">Generate Data</button></div>';
+                    return;
+                }
+                
+                content.innerHTML = '<div class="loading"><span class="spinner"></span>Calling Claude AI...</div>';
+                
+                const analysis = await callClaudeAI(data);
+                await saveAnalysisToBackend(devices[0].id, data.readings_hash, analysis, data.readings_count);
+                
+                renderAnalysis(analysis);
+                
+            } catch (err) {
+                console.error('Analysis error:', err);
+                content.innerHTML = `<div class="error">Failed to load analysis: ${err.message}</div>`;
+            }
+        }
+        
+        function renderAnalysis(a) {
+            const content = document.getElementById('analysis-content');
+            
+            content.innerHTML = `
+                <div class="grid" style="margin-bottom: 24px;">
+                    <div class="stat">
+                        <div class="stat-value">${Math.round(a.summary.average_power_watts)}</div>
+                        <div class="stat-label">Avg Power (W)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${Math.round(a.summary.peak_power_watts)}</div>
+                        <div class="stat-label">Peak Power (W)</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">${a.summary.daily_kwh.toFixed(1)}</div>
+                        <div class="stat-label">Daily kWh</div>
+                    </div>
+                    <div class="stat grade">
+                        <div class="stat-value">${a.score?.grade || '--'}</div>
+                        <div class="stat-label">Score</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 20px 0 12px;">📈 Forecast</h3>
+                <div class="forecast">
+                    <div class="forecast-item">
+                        <div class="label">Projected Monthly</div>
+                        <div class="value">${a.forecast.projected_monthly_kwh.toFixed(0)} kWh</div>
+                        <span class="trend ${a.forecast.trend}">${a.forecast.trend}</span>
+                    </div>
+                    <div class="forecast-item">
+                        <div class="label">Est. Monthly Cost</div>
+                        <div class="value">$${a.forecast.projected_monthly_cost.toFixed(0)}</div>
+                    </div>
+                    <div class="forecast-item">
+                        <div class="label">Confidence</div>
+                        <div class="value">${a.forecast.confidence}</div>
+                    </div>
+                </div>
+                <p style="margin-top: 12px; color: #666; font-size: 14px;">${a.forecast.explanation}</p>
+                
+                ${a.anomalies?.length ? `
+                    <h3 style="margin: 24px 0 12px;">⚠️ Anomalies</h3>
+                    ${a.anomalies.map(an => `
+                        <div class="anomaly">
+                            <h3>${an.type.toUpperCase()}: ${an.description}</h3>
+                            <p>${an.recommendation}</p>
+                            <p class="cause">Possible cause: ${an.possible_cause}</p>
+                        </div>
+                    `).join('')}
+                ` : ''}
+                
+                <h3 style="margin: 24px 0 12px;">💡 Recommendations</h3>
+                ${a.recommendations?.map(r => `
+                    <div class="recommendation ${r.priority}">
+                        <h3>[${r.priority?.toUpperCase()}] ${r.title}</h3>
+                        <p>${r.description}</p>
+                        <div class="recommendation-meta">
+                            <span>💡 Save ${r.estimated_savings_kwh} kWh/mo</span>
+                            <span>💰 $${r.estimated_savings_currency}/mo</span>
+                        </div>
+                        <div class="recommendation-actions">
+                            ${r.actions.map(a => `<span>${a}</span>`).join('')}
+                        </div>
+                    </div>
+                `).join('') || '<p style="color: #666;">No recommendations.</p>'}
+                
+                <h3 style="margin: 24px 0 12px;">📊 Score Breakdown</h3>
+                <div class="card" style="background: #f9fafb;">
+                    <p style="font-size: 16px;">${a.score?.breakdown || 'No data'}</p>
+                    <p style="font-size: 48px; font-weight: bold; color: #10b981; margin: 16px 0;">${a.score?.value || 0}/100</p>
+                </div>
+            `;
         }
         
         async function loadScenarioDevices() {
@@ -479,12 +599,13 @@
             btn.disabled = true;
             
             await api(`/simulate/scenario?device_id=${deviceId}&scenario=${selectedScenario}&duration_hours=48`);
+            await runAiAnalysis(parseInt(deviceId));
+            await loadDashboard();
             
             btn.textContent = 'Run Scenario';
             btn.disabled = false;
             
-            await loadDashboard();
-            alert(`Scenario "${selectedScenario}" completed! Check the dashboard for updated data.`);
+            alert(`Scenario "${selectedScenario}" completed! AI analysis updated.`);
         });
         
         // Modal

@@ -1,14 +1,20 @@
+import hashlib
+import json
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
 
 from ..database import get_db
-from ..models.device import Device
-from ..models.reading import Reading
+from ..models.device import Device, Reading, Analysis
 from ..simulator import simulator
-from .. import ai
+from ..schemas.analysis import AnalysisRequest, AnalysisResponse, GetAnalysisRequest
 
 router = APIRouter(prefix="/api", tags=["simulation"])
+
+
+def compute_readings_hash(readings: list) -> str:
+    data = json.dumps(readings, sort_keys=True)
+    return hashlib.md5(data.encode()).hexdigest()
 
 
 @router.post("/simulate/generate")
@@ -75,17 +81,40 @@ def run_scenario(
     return {"message": f"Ran scenario '{scenario}'", "count": len(readings_data)}
 
 
-@router.get("/analysis")
-def get_analysis(db: Session = Depends(get_db)):
-    """
-    Single endpoint that returns complete analysis:
-    - Summary stats
-    - Forecast
-    - Anomalies
-    - Recommendations
-    - Energy score
-    """
-    readings = db.query(Reading).order_by(Reading.timestamp.desc()).limit(200).all()
+@router.get("/devices/{device_id}/analysis", response_model=AnalysisResponse)
+def get_cached_analysis(device_id: int, db: Session = Depends(get_db)):
+    """Get the latest cached analysis for a device."""
+    analysis = (
+        db.query(Analysis)
+        .filter(Analysis.device_id == device_id)
+        .order_by(Analysis.created_at.desc())
+        .first()
+    )
+
+    if not analysis:
+        raise HTTPException(
+            status_code=404, detail="No cached analysis found. Generate analysis first."
+        )
+
+    return analysis
+
+
+@router.get("/devices/{device_id}/readings")
+def get_device_readings(
+    device_id: int, limit: int = Query(200, le=1000), db: Session = Depends(get_db)
+):
+    """Get readings for a device, used by frontend for AI analysis."""
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    readings = (
+        db.query(Reading)
+        .filter(Reading.device_id == device_id)
+        .order_by(Reading.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
 
     readings_data = [
         {
@@ -96,31 +125,60 @@ def get_analysis(db: Session = Depends(get_db)):
         for r in readings
     ]
 
-    devices = db.query(Device).all()
-    device_name = devices[0].name if devices else "your home"
+    readings_hash = compute_readings_hash(readings_data)
 
-    analysis = ai.analyze_energy(readings_data, device_name)
+    existing = (
+        db.query(Analysis)
+        .filter(
+            Analysis.device_id == device_id, Analysis.readings_hash == readings_hash
+        )
+        .first()
+    )
 
     return {
-        "readings_count": len(readings),
-        "devices_count": len(devices),
-        "analysis": analysis,
+        "readings": readings_data,
+        "readings_hash": readings_hash,
+        "readings_count": len(readings_data),
+        "device_name": device.name,
+        "cached_analysis": existing.analysis_data if existing else None,
     }
 
 
-@router.get("/recommendations")
-def get_recommendations(db: Session = Depends(get_db)):
-    """Get AI recommendations (kept for compatibility)"""
-    readings = db.query(Reading).order_by(Reading.timestamp.desc()).limit(200).all()
+@router.post("/analysis", response_model=AnalysisResponse)
+def save_analysis(analysis_req: AnalysisRequest, db: Session = Depends(get_db)):
+    """Save analysis from frontend (called after AI generates response)."""
+    device = db.query(Device).filter(Device.id == analysis_req.device_id).first()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
 
-    readings_data = [
-        {
-            "power_watts": r.power_watts,
-            "energy_kwh": r.energy_kwh,
-            "timestamp": r.timestamp.isoformat(),
-        }
-        for r in readings
-    ]
+    existing = (
+        db.query(Analysis)
+        .filter(
+            Analysis.device_id == analysis_req.device_id,
+            Analysis.readings_hash == analysis_req.readings_hash,
+        )
+        .first()
+    )
 
-    analysis = ai.analyze_energy(readings_data)
-    return {"recommendations": analysis.get("recommendations", [])}
+    if existing:
+        existing.analysis_data = analysis_req.analysis_data
+        existing.created_at = datetime.utcnow()
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    analysis = Analysis(
+        device_id=analysis_req.device_id,
+        readings_hash=analysis_req.readings_hash,
+        analysis_data=analysis_req.analysis_data,
+        readings_count=analysis_req.readings_count,
+        cached=True,
+    )
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
+
+    return analysis
+
+
+from datetime import datetime

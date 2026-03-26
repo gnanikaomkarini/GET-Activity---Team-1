@@ -4,115 +4,120 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Browser (HTML + JS + Chart.js)                             │
+│  Browser (HTML + JS + Chart.js + Puter.js)                   │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  puter.ai.chat() → Claude Sonnet 4.6                 │   │
+│  │  Returns: { summary, forecast, anomalies, recs }   │   │
+│  └─────────────────────────────────────────────────────┘   │
 └─────────────────────────┬───────────────────────────────────┘
-                          │ HTTP/JSON
-┌─────────────────────────▼───────────────────────────────────┐
+                          │
+                          │ POST /api/analysis (save cache)
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
 │  Python Backend (FastAPI)                                    │
-│                                                               │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │   Auth      │  │  Simulator  │  │    AI       │          │
-│  │   (JWT)     │  │   Engine    │  │  (LLM)      │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
-│                                                               │
-│  ┌─────────────┐  ┌─────────────┐                            │
-│  │   API       │  │   Database  │                            │
-│  │  Endpoints  │  │  (SQLite)   │                            │
-│  └─────────────┘  └─────────────┘                            │
+│  - Simulates devices and readings                           │
+│  - Stores devices, readings, analyses                       │
+│  - Caches AI analysis results                               │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+┌─────────────────────────▼───────────────────────────────────┐
+│  SQLite / PostgreSQL                                        │
+│  - devices, readings, analyses                               │
 └─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Flow
+
+### 1. User generates data
+```
+Frontend → POST /api/simulate/generate
+Backend → Creates device readings in DB
+```
+
+### 2. AI Analysis (Client-side)
+```
+Frontend → GET /api/devices/:id/readings
+Backend → Returns readings + checks cache
+
+Frontend → puter.ai.chat() (Claude Sonnet)
+Backend → Parse JSON response
+
+Frontend → POST /api/analysis
+Backend → Cache the analysis
+```
+
+### 3. Subsequent requests (Cached)
+```
+Frontend → GET /api/devices/:id/readings
+Backend → Returns cached analysis (same hash)
+Frontend → Display without calling AI
 ```
 
 ---
 
 ## Components
 
-### 1. Simulator Engine
-
+### Simulator Engine
 Generates realistic energy data for virtual devices.
 
 **Patterns:**
 - Time-of-day (low at night, peaks morning/evening)
 - Weekday vs weekend
-- Seasonal (heating/cooling)
-- Random variation (±10%)
+- Seasonal adjustments
+- Random variations
 
-### 2. AI Service (LLM)
-
-Uses a Large Language Model to:
-
-| Task | How AI Helps |
-|------|--------------|
-| Recommendations | Generate personalized energy-saving tips |
-| Anomaly Explanation | Explain why usage spiked/dropped |
-| Forecasting | Narrate trends and predict bills |
-| Chat | Answer user questions about energy |
-
-**Example:**
-```python
-# AI generates recommendation based on user's data
-response = openai.chat.completions.create(
-    model="gpt-4",
-    messages=[{
-        "role": "user",
-        "content": f"User's AC runs 6+ hours daily. "
-                   f"Monthly bill: $180. "
-                   f"Suggest 3 specific tips to reduce AC usage."
-    }]
-)
-```
-
-### 3. API Endpoints
-
-```
-POST   /api/auth/register
-POST   /api/auth/login
-GET    /api/devices
-POST   /api/devices
-GET    /api/readings?device_id=...
-POST   /api/readings
-GET    /api/recommendations (AI-generated)
-GET    /api/forecast
-POST   /api/simulator/scenario
-POST   /api/chat (ask AI questions)
-```
-
-### 4. Data Models
-
-```python
-User: id, email, password_hash, created_at
-Device: id, user_id, type, name, params, status
-Reading: id, device_id, timestamp, power, energy
-Recommendation: id, user_id, title, description, savings, generated_at
-```
+### Caching System
+- Hash of readings determines cache key
+- Same data = same hash = cached result
+- No redundant AI calls
 
 ---
 
-## AI Integration
+## API Endpoints
 
-The AI service analyzes user data and generates:
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/devices` | GET/POST/DELETE | Device management |
+| `/api/readings` | GET | Get energy readings |
+| `/api/devices/:id/readings` | GET | Get readings + cache check |
+| `/api/simulate/generate` | POST | Generate readings |
+| `/api/simulate/scenario` | POST | Run scenario |
+| `/api/analysis` | POST | Save AI analysis (cache) |
 
-1. **Personalized Tips** - Based on consumption patterns
-2. **Anomaly Explanations** - Why did usage spike?
-3. **Bill Predictions** - Project monthly costs
-4. **Actionable Advice** - Specific steps to save energy
+---
+
+## Data Models
+
+```python
+Device: id, name, type, location, params, status
+Reading: id, device_id, timestamp, power_watts, energy_kwh, voltage, current
+Analysis: id, device_id, readings_hash, analysis_data, readings_count, cached
+```
+
+### Analysis Cache
+```python
+readings_hash = md5(json.dumps(readings, sort_keys=True))
+# Same readings = same hash = cached analysis
+```
 
 ---
 
 ## Security
 
-- JWT tokens for auth
-- Password hashing (bcrypt)
+- No authentication (open for demo)
 - Input validation (Pydantic)
 - SQL injection prevention (SQLAlchemy)
-- API key for AI service stored securely
 
 ---
 
 ## Deployment
 
-Single Python process + SQLite.
-
 ```bash
+cd backend
 pip install -r requirements.txt
-OPENAI_API_KEY=sk-... uvicorn app.main:app --reload
+uvicorn main:app --reload
 ```
+
+Free hosting: Railway, Render, Fly.io

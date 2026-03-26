@@ -2,7 +2,7 @@
 
 ## Overview
 
-Simulation-only AI Energy Advisor. All features powered by AI (LLM).
+Simulation-only AI Energy Advisor powered by **Claude AI** (via Puter.js). No API keys required.
 
 ---
 
@@ -21,11 +21,11 @@ Simulation-only AI Energy Advisor. All features powered by AI (LLM).
 | Smart Plugs | Power (W), energy (kWh), on/off |
 | Energy Monitor | Per-circuit power, total |
 
-**Simulation Capabilities:**
-- Realistic time-of-day patterns
-- Day-of-week variations
+**Simulation Patterns:**
+- Time-of-day (low at night, peaks morning/evening)
+- Weekday vs weekend
 - Seasonal adjustments
-- Random anomalies
+- Random variations
 
 ---
 
@@ -34,137 +34,108 @@ Simulation-only AI Energy Advisor. All features powered by AI (LLM).
 **Description**: Visualize simulated energy consumption.
 
 **Features:**
-- Live power consumption display
-- Historical charts (daily, weekly, monthly)
-- Cost projection
-- Device breakdown
+- Average power (watts)
+- Daily usage (kWh)
+- Estimated monthly cost
+- Energy score/grade
+- Usage chart
 
 ---
 
-### 3. AI-Powered Recommendations
+### 3. AI-Powered Analysis (Claude)
 
-**Description**: The AI analyzes your energy data and generates personalized tips.
+**Description**: Single AI call returns complete analysis.
 
-**How It Works:**
+**Returns:**
+```json
+{
+  "summary": { "avg_power", "peak_power", "daily_kwh", "monthly_cost" },
+  "forecast": { "projected_monthly_kwh", "trend", "confidence" },
+  "anomalies": [{ "type", "description", "cause", "recommendation" }],
+  "recommendations": [{ "title", "description", "savings", "actions", "priority" }],
+  "score": { "value", "grade", "breakdown" }
+}
 ```
-Your Data → AI Analysis → Personalized Recommendations
-```
 
-**Example Recommendations:**
-| Situation | AI Recommendation |
-|-----------|-------------------|
-| High AC usage | "Your AC runs 40% more than similar homes. Try raising the thermostat 2°F or using a fan." |
-| Peak hours usage | "40% of your energy is used during peak hours (2-7 PM). Running appliances after 9 PM saves ~$25/month." |
-| Standby power | "Devices in standby cost you $15/month. Unplugging chargers and electronics when not in use saves $180/year." |
-
-**Features:**
-- Daily personalized tips
-- Context-aware suggestions
-- Estimated savings for each tip
-- One-click actions
+**How:**
+1. Frontend gets readings from backend
+2. Frontend calls `puter.ai.chat()` with data
+3. Claude returns JSON analysis
+4. Frontend POSTs to backend for caching
 
 ---
 
-### 4. AI Anomaly Detection
+### 4. Caching System
 
-**Description**: AI explains unusual patterns in your energy data.
+**Description**: Avoid redundant AI calls.
 
-**Anomaly Types:**
-- Spike (sudden increase)
-- Drop (unexpected decrease)
-- Pattern break
+**How:**
+- Readings hashed (md5)
+- Same hash = cached analysis returned
+- Different readings = new AI call
 
-**AI Explanation Example:**
-> "Your energy usage tripled on Tuesday between 2-4 PM. This coincides with running the electric dryer and oven simultaneously. Consider staggering high-power appliances."
-
----
-
-### 5. AI Forecasting
-
-**Description**: AI predicts future consumption and explains trends.
-
-**Features:**
-- 7-day forecast
-- Monthly bill projection
-- Trend explanations
-- "What if" scenarios
-
-**Example:**
-> "Based on your patterns, you're on track to spend $220 this month (up from $185 last month). The increase is due to higher AC usage during the heatwave. Running AC 2 hours less daily would save ~$35."
+**Benefits:**
+- Faster responses
+- Reduced AI usage
+- Consistent results for same data
 
 ---
 
-### 6. AI Chat
-
-**Description**: Ask questions about your energy usage in plain English.
-
-**Examples:**
-- "Why is my bill so high this month?"
-- "How can I reduce energy in my home office?"
-- "What appliances use the most energy?"
-- "Compare my usage to last month"
-
----
-
-### 7. Scenario Runner
+### 5. Scenarios
 
 **Description**: Test different energy situations.
 
-**Scenarios:**
 | Scenario | Effect |
 |----------|--------|
 | Normal Usage | Baseline patterns |
-| High Consumption | Elevated usage |
-| Seasonal Heating | Winter HVAC |
-| Seasonal Cooling | Summer AC |
-| Vacation Mode | Reduced usage |
+| Winter Heating | Higher consumption |
+| Summer Cooling | Peak AC usage |
+| Vacation Mode | Minimal usage |
+| High Consumption | Elevated baseline |
 | Anomaly Spike | Sudden spike |
+| Anomaly Drop | Sudden drop |
 
 ---
 
-### 8. Cost Analysis
+### 6. Recommendations
 
-**Description**: Track simulated energy costs.
+**Description**: Personalized tips from Claude.
 
-**Features:**
-- Bill estimation
-- Historical comparison
-- Tariff simulation (flat, time-of-use)
-- Budget alerts
+**Types:**
+| Type | Example |
+|------|---------|
+| Behavioral | "Turn off lights when leaving" |
+| Timing | "Run appliances after 9 PM" |
+| Settings | "Adjust thermostat 2°F" |
 
----
-
-### 9. Gamification
-
-**Description**: Stay motivated to save energy.
-
-**Features:**
-- Energy Score (AI-evaluated)
-- Achievement badges
-- Savings challenges
-- Streak tracking
+**Each includes:**
+- Estimated kWh savings
+- Estimated cost savings
+- Action steps
+- Priority (high/medium/low)
 
 ---
 
-## User Management
+### 7. Energy Score
 
-### Preferences
-- Tariff rates
-- Notification settings
-- Display units
+**Description**: Grade your energy efficiency.
 
-### Multi-Property
-- Multiple simulated homes
-- Consolidated view
+**Grade Scale:**
+- A: 85-100 (Excellent)
+- B: 70-84 (Good)
+- C: 55-69 (Average)
+- D: 40-54 (Below Average)
+- F: 0-39 (Poor)
 
 ---
 
-## Pricing Tiers
+## User Flow
 
-| Feature | Free | Pro |
-|---------|------|-----|
-| Simulated Devices | 5 | Unlimited |
-| AI Recommendations | 20/month | Unlimited |
-| AI Chat | No | Yes |
-| Historical Data | 30 days | 1 year |
-| Scenarios | Preset only | Custom |
+```
+1. Add Device → "Living Room Meter"
+2. Generate Data → Creates 96 readings
+3. AI Analyzes → Claude returns analysis
+4. View Dashboard → Shows stats + recommendations
+5. Run Scenario → "Heating" → New readings → AI re-analyzes
+6. Cache Hit → Same data returns cached results
+```

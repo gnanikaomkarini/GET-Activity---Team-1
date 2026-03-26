@@ -1,17 +1,18 @@
 # Technology Stack
 
-## Simple Python Stack with AI
+## Simple Stack (No API Keys)
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Frontend: HTML + JavaScript (served by Python)       │
+│  Frontend: HTML + JS + Chart.js + Puter.js           │
+│  - Puter.js calls Claude Sonnet 4.6 (free, no key)   │
 └─────────────────────────┬───────────────────────────┘
                           │
 ┌─────────────────────────▼───────────────────────────┐
 │  Backend: Python + FastAPI                           │
 │  - Simulator engine                                  │
-│  - AI service (OpenAI/Anthropic)                    │
-│  - API endpoints                                    │
+│  - Caching                                          │
+│  - API endpoints                                     │
 └─────────────────────────┬───────────────────────────┘
                           │
 ┌─────────────────────────▼───────────────────────────┐
@@ -25,37 +26,28 @@
 
 | Layer | Technology | Why |
 |-------|------------|-----|
-| Backend | Python 3.11 + FastAPI | Simple, async, auto-docs |
-| Database | SQLite (dev) / PostgreSQL (prod) | File-based or scalable |
-| AI | OpenAI GPT-4 or Anthropic Claude | Recommendations, chat |
 | Frontend | Vanilla JS + Chart.js | No build step |
-| Auth | JWT (built into FastAPI) | Simple tokens |
+| AI | Puter.js (Claude Sonnet 4.6) | Free, no API key |
+| Backend | Python 3.11 + FastAPI | Simple, async |
+| Database | SQLite (dev) / PostgreSQL (prod) | Zero config |
 
 ---
 
 ## File Structure
 
 ```
-/
-├── app/
-│   ├── main.py          # FastAPI app
-│   ├── models.py        # Database models
-│   ├── schemas.py       # API schemas
-│   ├── auth.py          # JWT auth
-│   ├── simulator.py     # Device simulation
-│   ├── ai/
-│   │   ├── client.py    # AI API client
-│   │   ├── recommend.py # AI recommendations
-│   │   ├── explain.py   # AI anomaly explanations
-│   │   └── chat.py      # AI chat
-│   └── routers/
-│       ├── users.py
-│       ├── devices.py
-│       └── readings.py
-├── static/
-│   └── index.html       # Dashboard
-├── requirements.txt
-└── README.md
+backend/
+├── main.py              # FastAPI app
+├── database.py          # DB setup
+├── simulator.py         # Device simulation
+├── models.py            # SQLAlchemy models
+├── schemas.py           # Pydantic schemas
+├── routers/
+│   ├── devices.py       # Device CRUD
+│   ├── readings.py      # Readings
+│   └── simulation.py    # Simulation + cache
+frontend/
+└── index.html           # Dashboard with Puter.js
 ```
 
 ---
@@ -64,26 +56,43 @@
 
 ```
 fastapi>=0.100
-uvicorn
-sqlalchemy
-pydantic
-python-jose[cryptography]  # JWT
-openai>=1.0  # or anthropic
-chart.js
+uvicorn[standard]>=0.23
+sqlalchemy>=2.0
+pydantic>=2.0
+python-dotenv>=1.0
 ```
 
 ---
 
-## AI Service
+## AI: Puter.js
 
-Uses LLMs for:
+[Puter.js](https://js.puter.com) provides free access to Claude AI from the browser.
 
-| Task | Prompt Example |
-|------|----------------|
-| Recommendations | "Based on this user's data, suggest 3 specific ways to reduce their energy bill." |
-| Anomaly Explanation | "Explain why this spike happened and how to prevent it." |
-| Forecasting | "Predict their monthly bill and explain the factors." |
-| Chat | Answer questions about their energy usage." |
+**Benefits:**
+- No API key needed
+- Free for developers (users pay)
+- Uses Claude Sonnet 4.6
+- Simple `puter.ai.chat()` API
+
+**How it works:**
+```javascript
+puter.ai.chat("Analyze this...", { model: 'claude-sonnet-4-6' })
+  .then(response => JSON.parse(response.message.content[0].text));
+```
+
+---
+
+## Caching
+
+Analysis is cached based on readings hash:
+
+```
+readings → md5 hash → check cache → return cached or call AI
+```
+
+- Same readings = same hash = cached result
+- Different readings = new hash = new analysis
+- Stored in `analyses` table
 
 ---
 
@@ -93,7 +102,5 @@ Uses LLMs for:
 |-----------|------|
 | Compute | $5-10 (Railway/Render) |
 | Database | Free (SQLite) or $5 (PostgreSQL) |
-| AI (OpenAI) | ~$10-50 (depending on usage) |
-| **Total** | **$15-65/month** |
-
-**Note:** AI costs depend on number of requests. Most users will cost <$1/month in AI tokens.
+| AI | Free (Puter.js) |
+| **Total** | **$5-15/month** |

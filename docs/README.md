@@ -1,52 +1,55 @@
 # AI-Based Energy Efficiency Advisor
 
-An intelligent system that **simulates** energy consumption and uses **AI** to generate personalized energy-saving recommendations.
+An intelligent system that **simulates** energy consumption and uses **Claude AI** to generate personalized energy-saving recommendations.
+
+## No API Keys Required
+
+Uses [Puter.js](https://js.puter.com) to access Claude Sonnet 4.6 for free.
+
+---
 
 ## How It Works
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  Simulate   │ ──▶ │  Collect    │ ──▶ │    Ask      │
-│  Energy     │     │  Data       │     │    AI       │
+│  Simulate  │ ──▶ │    Claude   │ ──▶ │  Dashboard  │
+│  Energy    │     │    AI       │     │  + Cache    │
 └─────────────┘     └─────────────┘     └─────────────┘
-                                              │
-                                              ▼
-                                        ┌─────────────┐
-                                        │  Personalized│
-                                        │  Tips       │
-                                        └─────────────┘
 ```
 
-1. **Simulate** virtual devices generating realistic energy data
-2. **Collect** consumption patterns over time
-3. **Ask AI** to analyze and suggest improvements
-4. **Get** personalized energy-saving tips
+1. **Simulate** virtual devices generating energy data
+2. **Claude AI** analyzes the data (via Puter.js)
+3. **View** personalized recommendations and score
+4. **Cache** results for fast reload
 
 ---
 
 ## Features
 
 - **IoT Simulator** - Virtual devices with realistic patterns
-- **Energy Dashboard** - Visualize simulated consumption
-- **AI Recommendations** - Personalized tips from AI
-- **AI Anomaly Detection** - AI explains unusual patterns
-- **AI Forecasting** - Predict bills and trends
-- **AI Chat** - Ask questions about your energy
-- **Scenario Runner** - Test heating, cooling, vacation
-- **Gamification** - Energy score, badges, challenges
+- **Claude AI** - Complete analysis in one call
+- **Smart Caching** - Avoid redundant AI calls
+- **Scenarios** - Test heating, cooling, vacation
+- **Energy Score** - Grade your efficiency (A-F)
+- **Recommendations** - Personalized tips with savings
 
 ---
 
-## AI Features
+## Quick Start
 
-Uses LLMs (OpenAI GPT-4 or Anthropic Claude) to:
+```bash
+# 1. Install dependencies
+cd backend
+pip install -r requirements.txt
 
-| Feature | AI Does |
-|---------|---------|
-| Recommendations | "Here are 3 specific ways to reduce your AC usage" |
-| Anomaly Explanation | "Your spike happened because you ran dryer + oven" |
-| Forecasting | "You're on track to spend $220 this month" |
-| Chat | Answer any question about your energy usage |
+# 2. Run (no config needed!)
+uvicorn main:app --reload
+
+# 3. Open browser
+# Go to http://localhost:8000
+```
+
+That's it! No API keys, no configuration.
 
 ---
 
@@ -56,20 +59,3 @@ Uses LLMs (OpenAI GPT-4 or Anthropic Claude) to:
 - [Features](./features.md)
 - [Tech Stack](./tech-stack.md)
 - [Roadmap](./roadmap.md)
-
----
-
-## Quick Start
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Set your AI API key
-export OPENAI_API_KEY=sk-...
-
-# Run the app
-uvicorn app.main:app --reload
-```
-
-Open http://localhost:8000 to see the dashboard.
