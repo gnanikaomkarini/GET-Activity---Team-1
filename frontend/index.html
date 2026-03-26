@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Advisor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        .header { background: #10b981; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .header h1 { font-size: 24px; margin-bottom: 8px; }
+        .header p { opacity: 0.9; }
+        
+        .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card h2 { font-size: 18px; color: #333; margin-bottom: 16px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .stat { background: #f9fafb; padding: 16px; border-radius: 8px; }
+        .stat-value { font-size: 28px; font-weight: bold; color: #10b981; }
+        .stat-label { font-size: 14px; color: #666; margin-top: 4px; }
+        
+        .auth-form { max-width: 400px; margin: 40px auto; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; }
+        
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn-primary { background: #10b981; color: white; }
+        .btn-primary:hover { background: #059669; }
+        .btn-secondary { background: #6b7280; color: white; }
+        
+        .device-list { display: flex; flex-direction: column; gap: 12px; }
+        .device-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 6px; }
+        .device-info { display: flex; align-items: center; gap: 12px; }
+        .device-icon { width: 40px; height: 40px; background: #10b981; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; }
+        .device-name { font-weight: 500; }
+        .device-type { font-size: 12px; color: #666; }
+        
+        .recommendation { padding: 16px; background: #f9fafb; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #10b981; }
+        .recommendation h3 { font-size: 16px; margin-bottom: 8px; }
+        .recommendation p { font-size: 14px; color: #666; margin-bottom: 12px; }
+        .recommendation-meta { display: flex; gap: 16px; font-size: 13px; color: #888; }
+        .recommendation-meta span { display: flex; align-items: center; gap: 4px; }
+        
+        .scenario-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .scenario-btn { padding: 8px 16px; background: #e5e7eb; border: none; border-radius: 20px; cursor: pointer; font-size: 13px; }
+        .scenario-btn:hover { background: #d1d5db; }
+        .scenario-btn.active { background: #10b981; color: white; }
+        
+        .chat-container { margin-top: 20px; }
+        .chat-messages { height: 300px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+        .chat-message { margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; max-width: 80%; }
+        .chat-message.user { background: #10b981; color: white; margin-left: auto; }
+        .chat-message.ai { background: #f3f4f6; color: #333; }
+        .chat-input { display: flex; gap: 8px; }
+        .chat-input input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        
+        .nav { display: flex; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px; }
+        .nav a { color: #666; text-decoration: none; padding: 8px 16px; border-radius: 6px; }
+        .nav a:hover { background: #f3f4f6; }
+        .nav a.active { background: #10b981; color: white; }
+        
+        .hidden { display: none; }
+        
+        canvas { max-height: 300px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Energy Efficiency Advisor</h1>
+            <p>AI-powered energy simulation and personalized recommendations</p>
+        </div>
+        
+        <div id="auth-section" class="auth-form card">
+            <h2>Login or Register</h2>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="auth-btn">Login</button>
+                <button type="button" class="btn btn-secondary" id="toggle-auth">Switch to Register</button>
+            </form>
+        </div>
+        
+        <div id="app-section" class="hidden">
+            <div class="nav">
+                <a href="#" class="active" data-view="dashboard">Dashboard</a>
+                <a href="#" data-view="devices">Devices</a>
+                <a href="#" data-view="recommendations">AI Recommendations</a>
+                <a href="#" data-view="chat">AI Chat</a>
+                <a href="#" id="logout">Logout</a>
+            </div>
+            
+            <div id="dashboard-view">
+                <div class="grid">
+                    <div class="card stat">
+                        <div class="stat-value" id="current-power">0</div>
+                        <div class="stat-label">Current Power (W)</div>
+                    </div>
+                    <div class="card stat">
+                        <div class="stat-value" id="daily-kwh">0</div>
+                        <div class="stat-label">Today (kWh)</div>
+                    </div>
+                    <div class="card stat">
+                        <div class="stat-value" id="monthly-cost">$0</div>
+                        <div class="stat-label">Est. Monthly Cost</div>
+                    </div>
+                    <div class="card stat">
+                        <div class="stat-value" id="energy-score">--</div>
+                        <div class="stat-label">Energy Score</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>Energy Usage Over Time</h2>
+                    <canvas id="energy-chart"></canvas>
+                </div>
+                
+                <div class="card">
+                    <h2>Scenarios</h2>
+                    <div class="scenario-btns">
+                        <button class="scenario-btn" data-scenario="normal">Normal</button>
+                        <button class="scenario-btn" data-scenario="heating">Heating</button>
+                        <button class="scenario-btn" data-scenario="cooling">Cooling</button>
+                        <button class="scenario-btn" data-scenario="vacation">Vacation</button>
+                        <button class="scenario-btn" data-scenario="anomaly_spike">Anomaly Spike</button>
+                    </div>
+                    <button class="btn btn-primary" id="run-scenario">Run Scenario</button>
+                </div>
+            </div>
+            
+            <div id="devices-view" class="hidden">
+                <div class="card">
+                    <h2>Your Devices</h2>
+                    <div class="device-list" id="device-list"></div>
+                    <button class="btn btn-primary" id="add-device-btn" style="margin-top: 16px;">Add Device</button>
+                </div>
+            </div>
+            
+            <div id="recommendations-view" class="hidden">
+                <div class="card">
+                    <h2>AI Recommendations</h2>
+                    <div id="recommendations-list"></div>
+                    <button class="btn btn-primary" id="refresh-recommendations" style="margin-top: 16px;">Get New Recommendations</button>
+                </div>
+            </div>
+            
+            <div id="chat-view" class="hidden">
+                <div class="card">
+                    <h2>Ask the AI</h2>
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chat-messages"></div>
+                        <div class="chat-input">
+                            <input type="text" id="chat-input" placeholder="Ask about your energy usage...">
+                            <button class="btn btn-primary" id="send-chat">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = '/api';
+        let token = localStorage.getItem('token');
+        let energyChart = null;
+        
+        // Auth
+        const authSection = document.getElementById('auth-section');
+        const appSection = document.getElementById('app-section');
+        const authForm = document.getElementById('auth-form');
+        const toggleAuth = document.getElementById('toggle-auth');
+        let isRegister = false;
+        
+        if (token) {
+            authSection.classList.add('hidden');
+            appSection.classList.remove('hidden');
+            initApp();
+        }
+        
+        toggleAuth.addEventListener('click', () => {
+            isRegister = !isRegister;
+            document.getElementById('auth-btn').textContent = isRegister ? 'Register' : 'Login';
+            toggleAuth.textContent = isRegister ? 'Switch to Login' : 'Switch to Register';
+        });
+        
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
+            const body = isRegister 
+                ? { email, password, name: email.split('@')[0] }
+                : new URLSearchParams({ username: email, password });
+            
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': isRegister ? 'application/json' : 'application/x-www-form-urlencoded' },
+                    body: isRegister ? JSON.stringify(body) : body
+                });
+                
+                if (!res.ok) throw new Error(await res.text());
+                
+                const data = await res.json();
+                if (!isRegister) {
+                    token = data.access_token;
+                    localStorage.setItem('token', token);
+                    authSection.classList.add('hidden');
+                    appSection.classList.remove('hidden');
+                    initApp();
+                } else {
+                    alert('Registration successful! Please login.');
+                    isRegister = false;
+                    toggleAuth.click();
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+        
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            location.reload();
+        });
+        
+        async function api(endpoint, options = {}) {
+            const res = await fetch(API_URL + endpoint, {
+                ...options,
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': options.body instanceof FormData ? 'multipart/form-data' : 'application/json',
+                    ...options.headers
+                },
+                body: options.body instanceof FormData ? options.body : options.body ? JSON.stringify(options.body) : undefined
+            });
+            if (res.status === 401) {
+                localStorage.removeItem('token');
+                location.reload();
+            }
+            return res.json();
+        }
+        
+        function initApp() {
+            loadDevices();
+            loadDashboard();
+            loadRecommendations();
+            setupNavigation();
+            setupScenario();
+            setupChat();
+        }
+        
+        function setupNavigation() {
+            document.querySelectorAll('.nav a[data-view]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelectorAll('.nav a').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    document.querySelectorAll('[id$="-view"]').forEach(v => v.classList.add('hidden'));
+                    document.getElementById(link.dataset.view + '-view').classList.remove('hidden');
+                });
+            });
+        }
+        
+        async function loadDashboard() {
+            try {
+                const readings = await api('/readings?limit=48');
+                if (readings.length > 0) {
+                    const latest = readings[0];
+                    document.getElementById('current-power').textContent = Math.round(latest.power_watts || 0);
+                    
+                    const today = readings.filter(r => new Date(r.timestamp).toDateString() === new Date().toDateString());
+                    const dailyKwh = today.reduce((sum, r) => sum + (r.energy_kwh || 0), 0);
+                    document.getElementById('daily-kwh').textContent = dailyKwh.toFixed(1);
+                    
+                    const monthlyCost = dailyKwh * 30 * 0.12;
+                    document.getElementById('monthly-cost').textContent = '$' + monthlyCost.toFixed(0);
+                    
+                    updateChart(readings);
+                }
+            } catch (err) {
+                console.error('Dashboard error:', err);
+            }
+        }
+        
+        function updateChart(readings) {
+            const ctx = document.getElementById('energy-chart').getContext('2d');
+            const sortedReadings = [...readings].reverse();
+            
+            if (energyChart) energyChart.destroy();
+            
+            energyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedReadings.map(r => new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })),
+                    datasets: [{
+                        label: 'Power (W)',
+                        data: sortedReadings.map(r => r.power_watts),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+        
+        async function loadDevices() {
+            const devices = await api('/devices');
+            const list = document.getElementById('device-list');
+            list.innerHTML = devices.map(d => `
+                <div class="device-item">
+                    <div class="device-info">
+                        <div class="device-icon">⚡</div>
+                        <div>
+                            <div class="device-name">${d.name}</div>
+                            <div class="device-type">${d.type}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="generateReadings(${d.id})">Generate Data</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            if (devices.length === 0) {
+                list.innerHTML = '<p style="color: #666;">No devices yet. Add one to get started.</p>';
+            }
+        }
+        
+        async function generateReadings(deviceId) {
+            await api(`/simulate/generate?device_id=${deviceId}&count=96`);
+            loadDashboard();
+            alert('Data generated!');
+        }
+        
+        function setupScenario() {
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+            
+            document.getElementById('run-scenario').addEventListener('click', async () => {
+                const activeBtn = document.querySelector('.scenario-btn.active');
+                if (!activeBtn) {
+                    alert('Select a scenario first');
+                    return;
+                }
+                
+                const devices = await api('/devices');
+                if (devices.length === 0) {
+                    alert('Add a device first');
+                    return;
+                }
+                
+                const scenario = activeBtn.dataset.scenario;
+                await api(`/simulate/scenario?device_id=${devices[0].id}&scenario=${scenario}&duration_hours=24`);
+                loadDashboard();
+                alert('Scenario completed!');
+            });
+        }
+        
+        async function loadRecommendations() {
+            const data = await api('/recommendations');
+            const list = document.getElementById('recommendations-list');
+            list.innerHTML = (data.recommendations || []).map(r => `
+                <div class="recommendation">
+                    <h3>${r.title}</h3>
+                    <p>${r.description}</p>
+                    <div class="recommendation-meta">
+                        <span>💡 Save ${r.estimated_savings_kwh || '?'} kWh</span>
+                        <span>💰 ~$${r.estimated_savings_currency || '?'}</span>
+                        <span>📊 ${Math.round((r.confidence_score || 0.8) * 100)}% confidence</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('refresh-recommendations').addEventListener('click', loadRecommendations);
+        
+        document.getElementById('add-device-btn')?.addEventListener('click', async () => {
+            const name = prompt('Device name:');
+            if (!name) return;
+            
+            const type = prompt('Device type (smart_meter, thermostat, plug, energy_monitor):');
+            if (!type) return;
+            
+            await api('/devices', {
+                method: 'POST',
+                body: { name, type, params: {}, location: 'Home' }
+            });
+            loadDevices();
+        });
+        
+        function setupChat() {
+            const input = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('send-chat');
+            const messages = document.getElementById('chat-messages');
+            
+            async function sendMessage() {
+                const msg = input.value.trim();
+                if (!msg) return;
+                
+                messages.innerHTML += `<div class="chat-message user">${msg}</div>`;
+                input.value = '';
+                
+                try {
+                    const res = await api('/chat', { method: 'POST', body: { message: msg } });
+                    messages.innerHTML += `<div class="chat-message ai">${res.response}</div>`;
+                } catch (err) {
+                    messages.innerHTML += `<div class="chat-message ai">Sorry, I had trouble responding.</div>`;
+                }
+                
+                messages.scrollTop = messages.scrollHeight;
+            }
+            
+            sendBtn.addEventListener('click', sendMessage);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+        }
+    </script>
+</body>
+</html>
