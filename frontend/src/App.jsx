@@ -1,91 +1,62 @@
-import { useState, useEffect } from 'react';
-import Dashboard from './components/Dashboard';
-import Devices from './components/Devices';
-import Analysis from './components/Analysis';
-import Scenarios from './components/Scenarios';
-import Settings from './components/Settings';
-import SimulationHistory from './components/SimulationHistory';
-import { api } from './api';
+import { useState } from 'react';
+import HomeForm from './components/HomeForm';
+import Results from './components/Results';
+import Loading from './components/Loading';
+import { getEnergyAdvice } from './services/gemini';
 import './App.css';
 
-const views = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'devices', label: 'Devices' },
-  { id: 'analysis', label: 'AI Analysis' },
-  { id: 'scenarios', label: 'Scenarios' },
-  { id: 'history', label: 'History' },
-  { id: 'settings', label: 'Settings' },
-];
-
 export default function App() {
-  const [view, setView] = useState('dashboard');
-  const [devices, setDevices] = useState([]);
-  const [household, setHousehold] = useState(null);
-  const [message, setMessage] = useState('');
+  const [view, setView] = useState('form');
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    const [devicesData, householdData] = await Promise.all([
-      api.getDevices(),
-      api.getHousehold(),
-    ]);
-    setDevices(devicesData);
-    setHousehold(householdData);
-  };
-
-  const handleMessage = (msg) => {
-    setMessage(msg);
-    setTimeout(() => setMessage(''), 4000);
-    loadData();
-  };
-
-  const renderView = () => {
-    switch (view) {
-      case 'dashboard':
-        return <Dashboard devices={devices} household={household} />;
-      case 'devices':
-        return <Devices onMessage={handleMessage} />;
-      case 'analysis':
-        return <Analysis devices={devices} household={household} onMessage={handleMessage} />;
-      case 'scenarios':
-        return <Scenarios onRun={handleMessage} />;
-      case 'history':
-        return <SimulationHistory />;
-      case 'settings':
-        return <Settings onMessage={handleMessage} />;
-      default:
-        return <Dashboard devices={devices} household={household} />;
+  const handleSubmit = async (data) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const advice = await getEnergyAdvice(data);
+      setResults(advice);
+      setView('results');
+    } catch (err) {
+      setError(err.message);
+      alert(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleReset = () => {
+    setResults(null);
+    setError(null);
+    setView('form');
   };
 
   return (
     <div className="app">
       <header className="header">
-        <h1>
-          Energy Efficiency Advisor 
-          <span className="ai-badge">Powered by Claude AI</span>
-        </h1>
-        <p>AI-powered energy simulation and personalized recommendations</p>
+        <h1>Energy Efficiency Advisor</h1>
+        <p>Get AI-powered recommendations to reduce your energy bills</p>
       </header>
 
-      {message && <div className="toast">{message}</div>}
+      <main className="main">
+        {view === 'form' && (
+          <>
+            {error && <div className="error-banner">{error}</div>}
+            <HomeForm onSubmit={handleSubmit} loading={loading} />
+            {loading && <Loading />}
+          </>
+        )}
+        
+        {view === 'results' && results && (
+          <Results data={results} onReset={handleReset} />
+        )}
+      </main>
 
-      <nav className="nav">
-        {views.map(v => (
-          <button
-            key={v.id}
-            className={view === v.id ? 'active' : ''}
-            onClick={() => setView(v.id)}
-          >
-            {v.label}
-          </button>
-        ))}
-      </nav>
-
-      <main>{renderView()}</main>
+      <footer className="footer">
+        <p>Powered by Google Gemini AI</p>
+      </footer>
     </div>
   );
 }
