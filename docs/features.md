@@ -2,140 +2,113 @@
 
 ## Overview
 
-Simulation-only AI Energy Advisor powered by **Claude AI** (via Puter.js). No API keys required.
+AI Energy Advisor powered by **Google Gemini AI**. Analyzes household appliances and provides personalized recommendations to reduce energy consumption.
 
 ---
 
 ## Core Features
 
-### 1. IoT Device Simulator
+### 1. Appliance Input
 
-**Description**: Creates virtual devices that generate realistic energy data.
+**Description**: Select and configure household appliances.
 
-**Simulated Device Types:**
+**Supported Appliances:**
+| Appliance | Icon | Typical Wattage |
+|-----------|------|-----------------|
+| Lights | 💡 | 15W |
+| Air Conditioning | ❄️ | 3500W |
+| Water Heater | 🚿 | 4500W |
+| Refrigerator | 🧊 | 150W |
+| Washing Machine | 👕 | 500W |
+| Dryer | 👔 | 3000W |
+| Dishwasher | 🍽️ | 1800W |
+| Microwave | 📦 | 1200W |
+| TV | 📺 | 100W |
+| Computer | 💻 | 200W |
+| Phone Chargers | 📱 | 10W |
+| Fans | 🌀 | 75W |
+| Stove/Oven | 🍳 | 2500W |
+| WiFi Router | 📡 | 15W |
+| Gaming Console | 🎮 | 150W |
+| Iron | 👔 | 1100W |
+| Vacuum Cleaner | 🧹 | 1400W |
+| Coffee Maker | ☕ | 800W |
 
-| Device | Generates |
-|--------|-----------|
-| Smart Meter | kWh readings, voltage, current |
-| Thermostat | Temperature, HVAC cycles |
-| Smart Plugs | Power (W), energy (kWh), on/off |
-| Energy Monitor | Per-circuit power, total |
-
-**Simulation Patterns:**
-- Time-of-day (low at night, peaks morning/evening)
-- Weekday vs weekend
-- Seasonal adjustments
-- Random variations
-
----
-
-### 2. Energy Dashboard
-
-**Description**: Visualize simulated energy consumption.
-
-**Features:**
-- Average power (watts)
-- Daily usage (kWh)
-- Estimated monthly cost
-- Energy score/grade
-- Usage chart
+**For each appliance:**
+- Number of units
+- Usage presets: Off / Light / Normal / Heavy / Custom hours
 
 ---
 
-### 3. AI-Powered Analysis (Claude)
+### 2. Household Info
+
+**Description**: Basic household context.
+
+**Fields:**
+- Number of occupants
+- Location (city, country)
+
+---
+
+### 3. Additional Context
+
+**Description**: User-provided context for personalized advice.
+
+**Examples:**
+- "Work from home 3 days a week"
+- "Have elderly parents visiting"
+- "Pool pump runs 6 hours daily"
+- "Live in hot climate zone"
+
+---
+
+### 4. AI Analysis (Gemini)
 
 **Description**: Single AI call returns complete analysis.
 
 **Returns:**
 ```json
 {
-  "summary": { "avg_power", "peak_power", "daily_kwh", "monthly_cost" },
-  "forecast": { "projected_monthly_kwh", "trend", "confidence" },
-  "anomalies": [{ "type", "description", "cause", "recommendation" }],
-  "recommendations": [{ "title", "description", "savings", "actions", "priority" }],
-  "score": { "value", "grade", "breakdown" }
+  "summary": { 
+    "totalMonthlyKwh": 450,
+    "largestConsumer": "Air Conditioning",
+    "comparisonToAverage": "20% above average"
+  },
+  "wasteAnalysis": [{ "appliance", "issue", "monthlyWasteKwh" }],
+  "savingTips": [{ "appliance", "tip", "potentialMonthlyKwh", "difficulty" }],
+  "recommendations": [{ "title", "description", "impact", "actionSteps" }],
+  "estimatedAfterSavings": { "monthlyKwh", "percentReduction" }
 }
 ```
 
 **How:**
-1. Frontend gets readings from backend
-2. Frontend calls `puter.ai.chat()` with data
-3. Claude returns JSON analysis
-4. Frontend POSTs to backend for caching
+1. App constructs prompt with appliance data
+2. Prompt sent to Gemini API
+3. AI returns JSON analysis
+4. Results displayed to user
 
 ---
 
-### 4. Caching System
+### 5. Results Display
 
-**Description**: Avoid redundant AI calls.
+**Description**: Shows analysis results.
 
-**How:**
-- Readings hashed (md5)
-- Same hash = cached analysis returned
-- Different readings = new AI call
-
-**Benefits:**
-- Faster responses
-- Reduced AI usage
-- Consistent results for same data
-
----
-
-### 5. Scenarios
-
-**Description**: Test different energy situations.
-
-| Scenario | Effect |
-|----------|--------|
-| Normal Usage | Baseline patterns |
-| Winter Heating | Higher consumption |
-| Summer Cooling | Peak AC usage |
-| Vacation Mode | Minimal usage |
-| High Consumption | Elevated baseline |
-| Anomaly Spike | Sudden spike |
-| Anomaly Drop | Sudden drop |
-
----
-
-### 6. Recommendations
-
-**Description**: Personalized tips from Claude.
-
-**Types:**
-| Type | Example |
-|------|---------|
-| Behavioral | "Turn off lights when leaving" |
-| Timing | "Run appliances after 9 PM" |
-| Settings | "Adjust thermostat 2°F" |
-
-**Each includes:**
-- Estimated kWh savings
-- Estimated cost savings
-- Action steps
-- Priority (high/medium/low)
-
----
-
-### 7. Energy Score
-
-**Description**: Grade your energy efficiency.
-
-**Grade Scale:**
-- A: 85-100 (Excellent)
-- B: 70-84 (Good)
-- C: 55-69 (Average)
-- D: 40-54 (Below Average)
-- F: 0-39 (Poor)
+**Sections:**
+- Summary (total kWh, biggest consumer)
+- Waste Analysis (where energy is wasted)
+- Saving Tips (specific advice per appliance)
+- Recommendations (high/medium/low impact)
+- After-Savings Estimate (projected usage + reduction %)
 
 ---
 
 ## User Flow
 
 ```
-1. Add Device → "Living Room Meter"
-2. Generate Data → Creates 96 readings
-3. AI Analyzes → Claude returns analysis
-4. View Dashboard → Shows stats + recommendations
-5. Run Scenario → "Heating" → New readings → AI re-analyzes
-6. Cache Hit → Same data returns cached results
+1. Fill Household Info → "4 occupants, Mumbai"
+2. Select Appliances → "10 lights, 2 ACs, 1 fridge..."
+3. Set Usage → "Normal (8h/day)" for each
+4. Add Context → "Work from home"
+5. Click Analyze → Gemini returns recommendations
+6. View Results → See waste, tips, and savings
 ```

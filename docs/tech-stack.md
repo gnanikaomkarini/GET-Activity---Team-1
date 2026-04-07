@@ -1,22 +1,22 @@
 # Technology Stack
 
-## Simple Stack (No API Keys)
+## Simple React Frontend
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Frontend: HTML + JS + Chart.js + Puter.js           │
-│  - Puter.js calls Claude Sonnet 4.6 (free, no key)   │
-└─────────────────────────┬───────────────────────────┘
-                          │
-┌─────────────────────────▼───────────────────────────┐
-│  Backend: Python + FastAPI                           │
-│  - Simulator engine                                  │
-│  - Caching                                          │
-│  - API endpoints                                     │
-└─────────────────────────┬───────────────────────────┘
-                          │
-┌─────────────────────────▼───────────────────────────┐
-│  Database: SQLite (dev) / PostgreSQL (prod)          │
+│  Frontend: React + Vite                              │
+│  ┌─────────────────────────────────────────────────┐ │
+│  │  HomeForm (Appliance Input)                      │ │
+│  │  Results (AI Recommendations)                   │ │
+│  └─────────────────────┬───────────────────────────┘ │
+│                        │                             │
+└────────────────────────┼─────────────────────────────┘
+                         │ fetch()
+                         ▼
+┌─────────────────────────────────────────────────────┐
+│  Google Gemini API (gemini-2.5-flash)               │
+│  - Direct REST API calls                            │
+│  - No SDK (avoids CORS issues)                     │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -26,28 +26,31 @@
 
 | Layer | Technology | Why |
 |-------|------------|-----|
-| Frontend | Vanilla JS + Chart.js | No build step |
-| AI | Puter.js (Claude Sonnet 4.6) | Free, no API key |
-| Backend | Python 3.11 + FastAPI | Simple, async |
-| Database | SQLite (dev) / PostgreSQL (prod) | Zero config |
+| Frontend | React 18 + Vite | Fast, modern |
+| AI | Google Gemini 2.5 Flash | Fast, affordable |
+| Styling | CSS | Simple, no dependencies |
 
 ---
 
 ## File Structure
 
 ```
-backend/
-├── main.py              # FastAPI app
-├── database.py          # DB setup
-├── simulator.py         # Device simulation
-├── models.py            # SQLAlchemy models
-├── schemas.py           # Pydantic schemas
-├── routers/
-│   ├── devices.py       # Device CRUD
-│   ├── readings.py      # Readings
-│   └── simulation.py    # Simulation + cache
 frontend/
-└── index.html           # Dashboard with Puter.js
+├── src/
+│   ├── App.jsx              # Main app
+│   ├── App.css              # Styles
+│   ├── main.jsx             # Entry point
+│   ├── components/
+│   │   ├── HomeForm.jsx    # Appliance input form
+│   │   ├── Results.jsx     # AI recommendations display
+│   │   └── Loading.jsx     # Loading spinner
+│   ├── services/
+│   │   └── gemini.js       # Gemini API integration
+│   └── data/
+│       └── appliances.js    # Appliance database
+├── .env.example             # API key template
+├── package.json
+└── index.html
 ```
 
 ---
@@ -55,52 +58,41 @@ frontend/
 ## Dependencies
 
 ```
-fastapi>=0.100
-uvicorn[standard]>=0.23
-sqlalchemy>=2.0
-pydantic>=2.0
-python-dotenv>=1.0
+react
+react-dom
+@google/generative-ai (optional - using direct fetch)
+vite
 ```
 
 ---
 
-## AI: Puter.js
+## AI: Google Gemini
 
-[Puter.js](https://js.puter.com) provides free access to Claude AI from the browser.
-
-**Benefits:**
-- No API key needed
-- Free for developers (users pay)
-- Uses Claude Sonnet 4.6
-- Simple `puter.ai.chat()` API
+**API**: Direct REST calls to `generativelanguage.googleapis.com`
 
 **How it works:**
 ```javascript
-puter.ai.chat("Analyze this...", { model: 'claude-sonnet-4-6' })
-  .then(response => JSON.parse(response.message.content[0].text));
+fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    contents: [{ parts: [{ text: prompt }] }]
+  })
+})
 ```
+
+**Benefits:**
+- Free tier available (15 requests/minute, 1500 requests/day)
+- Fast responses
+- Good quality analysis
+- No SDK needed
 
 ---
 
-## Caching
+## No Database
 
-Analysis is cached based on readings hash:
-
-```
-readings → md5 hash → check cache → return cached or call AI
-```
-
-- Same readings = same hash = cached result
-- Different readings = new hash = new analysis
-- Stored in `analyses` table
-
----
-
-## Cost (Monthly)
-
-| Component | Cost |
-|-----------|------|
-| Compute | $5-10 (Railway/Render) |
-| Database | Free (SQLite) or $5 (PostgreSQL) |
-| AI | Free (Puter.js) |
-| **Total** | **$5-15/month** |
+This app is session-based:
+- No backend
+- No database
+- All data is temporary (per session)
+- Future: could add localStorage for history

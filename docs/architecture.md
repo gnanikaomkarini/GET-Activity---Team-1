@@ -4,25 +4,11 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Browser (HTML + JS + Chart.js + Puter.js)                   │
+│  Browser (React App)                                         │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  puter.ai.chat() → Claude Sonnet 4.6                 │   │
-│  │  Returns: { summary, forecast, anomalies, recs }   │   │
+│  │  HomeForm → gemini.js → Gemini API                   │   │
+│  │  Results ← JSON response                              │   │
 │  └─────────────────────────────────────────────────────┘   │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-                          │ POST /api/analysis (save cache)
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Python Backend (FastAPI)                                    │
-│  - Simulates devices and readings                           │
-│  - Stores devices, readings, analyses                       │
-│  - Caches AI analysis results                               │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-┌─────────────────────────▼───────────────────────────────────┐
-│  SQLite / PostgreSQL                                        │
-│  - devices, readings, analyses                               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -30,94 +16,80 @@
 
 ## Flow
 
-### 1. User generates data
+### 1. User Fills Form
 ```
-Frontend → POST /api/simulate/generate
-Backend → Creates device readings in DB
-```
-
-### 2. AI Analysis (Client-side)
-```
-Frontend → GET /api/devices/:id/readings
-Backend → Returns readings + checks cache
-
-Frontend → puter.ai.chat() (Claude Sonnet)
-Backend → Parse JSON response
-
-Frontend → POST /api/analysis
-Backend → Cache the analysis
+User → HomeForm → Selects appliances and usage
 ```
 
-### 3. Subsequent requests (Cached)
+### 2. AI Analysis
 ```
-Frontend → GET /api/devices/:id/readings
-Backend → Returns cached analysis (same hash)
-Frontend → Display without calling AI
+HomeForm → construct prompt → gemini.js
+gemini.js → fetch() → Google Gemini API
+Gemini API → JSON response → gemini.js
+gemini.js → parse JSON → HomeForm
+```
+
+### 3. Display Results
+```
+Results component → Show summary, waste, tips, recommendations
 ```
 
 ---
 
 ## Components
 
-### Simulator Engine
-Generates realistic energy data for virtual devices.
+### HomeForm
+- Household info inputs (occupants, location)
+- Appliance selection grid
+- Usage presets per appliance
+- Additional context textarea
+- Submit button
 
-**Patterns:**
-- Time-of-day (low at night, peaks morning/evening)
-- Weekday vs weekend
-- Seasonal adjustments
-- Random variations
+### Results
+- Summary cards (kWh, biggest consumer)
+- Waste analysis list
+- Saving tips list
+- Recommendations accordion
+- After-savings estimate
 
-### Caching System
-- Hash of readings determines cache key
-- Same data = same hash = cached result
-- No redundant AI calls
-
----
-
-## API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/devices` | GET/POST/DELETE | Device management |
-| `/api/readings` | GET | Get energy readings |
-| `/api/devices/:id/readings` | GET | Get readings + cache check |
-| `/api/simulate/generate` | POST | Generate readings |
-| `/api/simulate/scenario` | POST | Run scenario |
-| `/api/analysis` | POST | Save AI analysis (cache) |
+### Loading
+- Spinner animation during API call
 
 ---
 
-## Data Models
+## API Integration
 
-```python
-Device: id, name, type, location, params, status
-Reading: id, device_id, timestamp, power_watts, energy_kwh, voltage, current
-Analysis: id, device_id, readings_hash, analysis_data, readings_count, cached
+**Endpoint**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
+
+**Request:**
+```json
+{
+  "contents": [{
+    "parts": [{ "text": "analyze my energy usage..." }]
+  }]
+}
 ```
 
-### Analysis Cache
-```python
-readings_hash = md5(json.dumps(readings, sort_keys=True))
-# Same readings = same hash = cached analysis
+**Response:**
+```json
+{
+  "candidates": [{
+    "content": {
+      "parts": [{
+        "text": "{ json analysis }"
+      }]
+    }
+  }]
+}
 ```
 
 ---
 
-## Security
+## Environment
 
-- No authentication (open for demo)
-- Input validation (Pydantic)
-- SQL injection prevention (SQLAlchemy)
-
----
-
-## Deployment
-
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
+API key stored in `.env`:
+```
+VITE_GEMINI_API_KEY=your_key_here
 ```
 
-Free hosting: Railway, Render, Fly.io
+Get free key from: https://aistudio.google.com/apikey

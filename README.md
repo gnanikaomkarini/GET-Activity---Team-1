@@ -1,38 +1,61 @@
 # Energy Efficiency Advisor
 
-AI-powered energy simulation with Claude AI (free, no API key needed).
+AI-powered energy efficiency advisor that analyzes your household appliances and provides personalized recommendations to reduce energy consumption.
 
 ## Quick Start
 
-### Backend
-```bash
-cd backend
-pip install -r requirements.txt
-python main.py
-```
-
-### Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173 for frontend, http://localhost:8000 for API.
+Open http://localhost:5173
+
+### Setup API Key
+
+1. Get a free API key from [Google AI Studio](https://aistudio.google.com/apikey)
+2. Create a `.env` file in the `frontend` folder:
+   ```
+   VITE_GEMINI_API_KEY=your_api_key_here
+   ```
+3. Restart the dev server
 
 ## Features
 
-- **Simulate** virtual energy devices
-- **Generate** realistic consumption data
-- **Claude AI** analysis (via Puter.js - free)
-- **Smart caching** - avoid redundant AI calls
-- **Run scenarios** - heating, cooling, vacation
-- **Energy score** - grade your efficiency (A-F)
-- **Recommendations** - personalized tips with savings
+- **Appliance Analysis** - Input your household appliances and usage patterns
+- **AI Recommendations** - Personalized tips powered by Gemini AI
+- **Energy Waste Detection** - Identify where you're using too much energy
+- **Savings Calculator** - See how much you can reduce your usage
+- **India-Focused** - Designed for Indian households with common appliances
+
+## How It Works
+
+1. Enter your household info (occupants, location)
+2. Select your appliances and daily usage
+3. Add any additional context
+4. Get AI-powered recommendations
 
 ## Tech Stack
 
-- **Frontend**: React + Vite + Chart.js
-- **Backend**: Python + FastAPI + SQLAlchemy
-- **AI**: Puter.js (Claude Sonnet 4.6) - free, no API key
-- **Database**: SQLite
+- **Frontend**: React + Vite
+- **AI**: Google Gemini 2.5 Flash
+
+## Project Structure
+
+```
+frontend/
+├── src/
+│   ├── App.jsx              # Main app
+│   ├── App.css              # Styles
+│   ├── components/
+│   │   ├── HomeForm.jsx    # Appliance input form
+│   │   ├── Results.jsx     # AI recommendations
+│   │   └── Loading.jsx     # Loading spinner
+│   ├── services/
+│   │   └── gemini.js       # Gemini API integration
+│   └── data/
+│       └── appliances.js    # Appliance database
+├── .env.example             # API key template
+└── package.json
+```
