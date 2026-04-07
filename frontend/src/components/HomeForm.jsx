@@ -4,17 +4,32 @@ import { appliances } from '../data/appliances';
 export default function HomeForm({ onSubmit, loading }) {
   const [household, setHousehold] = useState({
     occupants: 4,
-    location: '',
-    tariffRate: 0.12,
+    location: 'California, USA',
+    tariffRate: 0.22,
   });
   const [applianceData, setApplianceData] = useState(() => {
     const initial = {};
     appliances.forEach(a => {
-      initial[a.id] = { count: 0, usageIndex: 1 };
+      let count = 0;
+      let usageIndex = 1;
+      if (a.id === 'lights') { count = 10; usageIndex = 2; }
+      else if (a.id === 'ac') { count = 2; usageIndex = 2; }
+      else if (a.id === 'refrigerator') { count = 1; usageIndex = 0; }
+      else if (a.id === 'tv') { count = 3; usageIndex = 2; }
+      else if (a.id === 'computer') { count = 2; usageIndex = 2; }
+      else if (a.id === 'washing_machine') { count = 1; usageIndex = 1; }
+      else if (a.id === 'dryer') { count = 1; usageIndex = 0; }
+      else if (a.id === 'dishwasher') { count = 1; usageIndex = 0; }
+      else if (a.id === 'microwave') { count = 1; usageIndex = 1; }
+      else if (a.id === 'wifi') { count = 1; usageIndex = 0; }
+      else if (a.id === 'chargers') { count = 4; usageIndex = 1; }
+      else if (a.id === 'fans') { count = 2; usageIndex = 1; }
+      else if (a.id === 'coffee') { count = 1; usageIndex = 0; }
+      initial[a.id] = { count, usageIndex };
     });
     return initial;
   });
-  const [context, setContext] = useState('');
+  const [context, setContext] = useState('Typical family of 4, both parents work office jobs. Kids are in school during the day.');
 
   const handleApplianceChange = (id, field, value) => {
     setApplianceData(prev => ({
