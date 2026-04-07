@@ -79,7 +79,7 @@ export async function getEnergyAdvice(data) {
     throw new Error('API key not configured. Please add VITE_GEMINI_API_KEY to your .env file.');
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   const prompt = promptTemplate(data);
   
   const result = await model.generateContent(prompt);
