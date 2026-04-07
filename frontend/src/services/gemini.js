@@ -1,6 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 const promptTemplate = (data) => {
   const appliancesList = data.appliances
@@ -75,18 +73,40 @@ Respond ONLY with valid JSON, no markdown or extra text.`;
 };
 
 export async function getEnergyAdvice(data) {
-  if (!import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY === 'your_api_key_here') {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  
+  if (!apiKey || apiKey === 'your_api_key_here') {
     throw new Error('API key not configured. Please add VITE_GEMINI_API_KEY to your .env file.');
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   const prompt = promptTemplate(data);
   
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const text = response.text();
+  const response = await fetch(`${API_URL}?key=${apiKey}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+      }
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`API Error: ${response.status} - ${error}`);
+  }
+
+  const result = await response.json();
+  const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
   
-  const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?$/g, '').trim();
+  if (!text) {
+    throw new Error('No response from AI');
+  }
   
-  return JSON.parse(cleanedText);
+  return JSON.parse(text);
 }
