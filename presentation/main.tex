@@ -1,0 +1,494 @@
+\documentclass[11pt,aspectratio=169,notes,mathserif]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usefonttheme{serif}
+\setbeamertemplate{footnote}{\href{https://EnergyAdvisor.app}{\beamergeftableotenote{~}}}
+\setbeamertemplate{footnote}{\justifying}
+\usepackage[english]{babel}
+\usetheme{Madrid}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{ragged2e}
+\setbeamertemplate{caption}[numbered]
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{colortbl}
+
+% Logo in top right corner
+\addtobeamertemplate{frametitle}{}{%
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[anchor=north east, xshift=-0.6cm, yshift=-0.2cm] at (current page.north east) {
+            \includegraphics[width=0.8cm]{college_logo}
+        };
+    \end{tikzpicture}
+}
+
+% For images
+\usepackage{graphicx}
+\graphicspath{{./images/}}
+
+% Justification
+\setbeamerfont{footline}{size=\fontsize{8}{8}\selectfont}
+\usepackage{ragged2e}
+\apptocmd{\frame}{}{\justifying}{}
+
+% Title page adjustments
+\defbeamertemplate{title page}{custom}[1][]{
+    \begin{centering}
+        \vspace*{1cm}
+        {\usebeamerfont{title}\usebeamercolor[fg]{title}\textbf{#1}\par}%
+        \vskip1em
+        {\usebeamerfont{subtitle}\usebeamercolor[fg]{subtitle}{#1}\par}%
+        \vskip2em
+        \begin{columns}
+            \column{1\linewidth}
+        \end{columns}
+    \end{centering}
+}
+
+\title[]{%
+    \textbf{Energy Efficiency Advisor} \\[0.5cm]
+    \textit{AI-Powered Energy Consumption Analysis \& Recommendations}
+}
+
+\author[]{%
+    \textbf{Team Members:} \\
+    \vspace{0.3cm}
+    {\small Your Name 1 \\ Roll No: XXXXXXXX} \\[0.2cm]
+    {\small Your Name 2 \\ Roll No: XXXXXXXX} \\[0.2cm]
+    {\small Your Name 3 \\ Roll No: XXXXXXXX} \\[0.2cm]
+    {\small Your Name 4 \\ Roll No: XXXXXXXX}
+}
+
+\institute[]{%
+    \textbf{Under the Guidance of} \\[0.3cm]
+    \textbf{Dr. [Guide Name]} \\
+    \textbf{Associate Professor,} \\
+    \textbf{Dept of [Your Department],} \\
+    \textbf{[Your College Name]}
+}
+
+\date{\today}
+
+\begin{document}
+% Title Frame
+\begin{frame}[plain]
+    \maketitle
+\end{frame}
+
+% Table of Contents
+\begin{frame}{\textbf{Table of Content}}
+    \tableofcontents
+\end{frame}
+
+\section{Abstract}
+\begin{frame}{\textbf{Abstract}}
+    \justifying
+    Energy Efficiency Advisor is an AI-powered web application designed to help Indian households analyze their energy consumption patterns. 
+    
+    The application allows users to input their household appliances and usage patterns, then uses Google Gemini AI to generate personalized recommendations for reducing energy consumption.
+    
+    \begin{block}{\textbf{Key Features}}
+        \begin{itemize}
+            \item \textbf{18 Common Appliances} - Covers all major household devices
+            \item \textbf{Usage-Based Analysis} - Light/Normal/Heavy usage patterns
+            \item \textbf{AI-Powered Recommendations} - Personalized tips from Gemini AI
+            \item \textbf{No Technical Knowledge Required} - Simple, intuitive interface
+        \end{itemize}
+    \end{block}
+    
+    This project demonstrates the practical application of AI in addressing real-world energy consumption challenges faced by everyday households.
+\end{frame}
+
+\section{Problem Statement}
+\begin{frame}{\textbf{Problem Statement}}
+    \justifying
+    Indian households face several challenges related to energy consumption:
+    
+    \begin{block}{\textbf{Challenges}}
+        \begin{itemize}
+            \item \textbf{Rising Electricity Costs} - Average household spends ₹3,000-8,000/month
+            \item \textbf{Lack of Awareness} - Users don't know which appliances consume the most power
+            \item \textbf{No Personalized Advice} - Generic tips don't account for individual usage
+            \item \textbf{Technical Complexity} - Existing solutions require technical expertise
+            \item \textbf{Difficulty Identifying Waste} - Hard to pinpoint energy-wasting habits
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{\textbf{Need}}
+        A simple, AI-powered tool that provides personalized, actionable recommendations for reducing energy consumption without requiring technical knowledge.
+    \end{block}
+\end{frame}
+
+\section{Introduction}
+\begin{frame}{\textbf{Introduction}}
+    \justifying
+    \textbf{Energy Efficiency Advisor} is a modern solution to household energy management.
+    
+    \begin{block}{\textbf{What It Does}}
+        \begin{itemize}
+            \item Analyzes household energy consumption based on appliances and usage
+            \item Uses AI to identify energy waste
+            \item Provides personalized, actionable recommendations
+            \item Shows potential savings in kWh (not money)
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{\textbf{Why India-Focused?}}
+        \begin{itemize}
+            \item Tailored for Indian household appliances
+            \item Common usage patterns in Indian homes
+            \item Focus on kWh savings rather than currency
+            \item Addresses specific challenges of Indian climate and lifestyle
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{\textbf{Introduction (Cont.)}}
+    \justifying
+    The application transforms complex energy calculations into simple, actionable insights.
+    
+    \begin{columns}
+        \column{0.5\linewidth}
+        \begin{block}{\textbf{Before}}
+            \begin{itemize}
+                \item High electricity bills
+                \item No idea what's wasting power
+                \item Generic, useless advice
+                \item Complex technical terms
+            \end{itemize}
+        \end{block}
+        
+        \column{0.5\linewidth}
+        \begin{block}{\textbf{After}}
+            \begin{itemize}
+                \item Clear usage breakdown
+                \item Specific waste identified
+                \item Personalized tips
+                \item Simple action steps
+            \end{itemize}
+        \end{block}
+    \end{columns}
+    
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.7\linewidth]{app_interface}
+        \caption{Energy Efficiency Advisor Interface}
+    \end{figure}
+\end{frame}
+
+\section{Objectives}
+\begin{frame}{\textbf{Objectives}}
+    \justifying
+    The primary objectives of this project are:
+    
+    \begin{block}{\textbf{Primary Objectives}}
+        \begin{enumerate}
+            \item \textbf{Simplify Energy Analysis} - Make complex energy calculations accessible to everyone without technical knowledge
+            
+            \item \textbf{Identify Energy Waste} - Highlight which appliances and usage patterns waste the most energy
+            
+            \item \textbf{Provide Actionable Recommendations} - Give step-by-step advice categorized by difficulty (Easy/Medium/Hard)
+            
+            \item \textbf{Reduce Energy Consumption} - Help users save kWh with practical, implementable changes
+            
+            \item \textbf{India-Focused Solution} - Tailor the solution for Indian households, appliances, and usage patterns
+        \end{enumerate}
+    \end{block}
+\end{frame}
+
+\section{Technology Stack}
+\begin{frame}{\textbf{Technology Stack}}
+    \justifying
+    
+    \begin{table}
+        \centering
+        \small
+        \caption{Technologies Used}
+        \begin{tabular}{|c|p{5cm}|p{4cm}|}
+            \hline
+            \textbf{Component} & \textbf{Technology} & \textbf{Purpose} \\ \hline
+            Frontend & React 18 + Vite & Modern UI framework \\ \hline
+            Styling & CSS & Custom styling \\ \hline
+            AI Model & Google Gemini 2.5 Flash & AI recommendations \\ \hline
+            API & REST (Direct) & Avoids CORS issues \\ \hline
+            Deployment & Static Hosting & Easy deployment \\ \hline
+        \end{tabular}
+    \end{table}
+    
+    \begin{block}{\textbf{Why These Technologies?}}
+        \begin{itemize}
+            \item \textbf{React + Vite} - Fast, component-based, hot module replacement
+            \item \textbf{Gemini 2.5 Flash} - Fast AI processing, affordable, high quality
+            \item \textbf{Direct REST API} - No SDK dependencies, avoids CORS
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{\textbf{Architecture Overview}}
+    \justifying
+    
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.85\linewidth]{architecture}
+        \caption{System Architecture}
+    \end{figure}
+    
+    \begin{block}{\textbf{Data Flow}}
+        User Input $\rightarrow$ React Form $\rightarrow$ Gemini API $\rightarrow$ AI Analysis $\rightarrow$ Recommendations
+    \end{block}
+\end{frame}
+
+\section{Implementation}
+\subsection{Modules Used}
+\begin{frame}{\textbf{Implementation: Modules Used}}
+    \justifying
+    
+    \begin{block}{\textbf{1. Appliance Database (appliances.js)}}
+        \begin{itemize}
+            \item 18 pre-configured household appliances
+            \item Default wattage values based on real data
+            \item Usage presets (Light/Normal/Heavy hours)
+            \item Icons for visual representation
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{\textbf{2. Home Form Component (HomeForm.jsx)}}
+        \begin{itemize}
+            \item Household info inputs (occupants, location)
+            \item Interactive appliance selection grid
+            \item Usage configuration per appliance
+            \item Additional context textarea
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{\textbf{3. Gemini Service (gemini.js)}}
+        \begin{itemize}
+            \item Prompt construction from user data
+            \item Direct API integration with Gemini
+            \item JSON response parsing
+            \item Error handling
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\subsection{Working Process}
+\begin{frame}{\textbf{Implementation: Working Process}}
+    \justifying
+    
+    \begin{block}{\textbf{Step 1: User Input}}
+        \begin{itemize}
+            \item Enter household info (occupants, location)
+            \item Select applicable appliances from 18 options
+            \item Configure usage level (Light/Normal/Heavy)
+            \item Add optional context (work from home, etc.)
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{\textbf{Step 2: Data Processing}}
+        \begin{itemize}
+            \item Calculate monthly kWh for each appliance
+            \item Construct AI prompt with all data
+            \item Format data for Gemini API
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{\textbf{Step 3: AI Analysis}}
+        \begin{itemize}
+            \item Send request to Gemini 2.5 Flash API
+            \item AI analyzes consumption patterns
+            \item Generate waste analysis
+            \item Create saving recommendations
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{\textbf{Implementation: Working Process (Cont.)}}
+    \justifying
+    
+    \begin{block}{\textbf{Step 4: Results Display}}
+        \begin{itemize}
+            \item Show total monthly usage in kWh
+            \item Highlight biggest energy consumers
+            \item Display identified waste analysis
+            \item List actionable saving tips with difficulty levels
+        \end{itemize}
+    \end{block}
+    
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.75\linewidth]{results_screenshot}
+        \caption{Results Display}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{\textbf{Implementation: Sample Code}}
+    \justifying
+    
+    \begin{block}{\textbf{Gemini API Integration}}
+        \small
+        \begin{verbatim}
+const API_URL = 'https://generativelanguage.googleapis.com
+                  /v1beta/models/gemini-2.5-flash:generateContent';
+
+const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    contents: [{ parts: [{ text: prompt }] }]
+  })
+});
+        \end{verbatim}
+    \end{block}
+    
+    \begin{block}{\textbf{Appliance Data Structure}}
+        \small
+        \begin{verbatim}
+{
+  id: 'ac',
+  name: 'Air Conditioning',
+  icon: '❄️',
+  wattage: 3500,
+  usageOptions: [
+    { label: 'Off', hours: 0 },
+    { label: 'Few hours (4h)', hours: 4 },
+    { label: 'Normal (8h)', hours: 8 },
+  ]
+}
+        \end{verbatim}
+    \end{block}
+\end{frame}
+
+\section{Results}
+\begin{frame}{\textbf{Results}}
+    \justifying
+    
+    \begin{block}{\textbf{Analysis Output}}
+        \begin{itemize}
+            \item \textbf{Total Monthly Usage} - Calculated in kWh
+            \item \textbf{Biggest Consumer} - Identifies top energy user
+            \item \textbf{Waste Analysis} - Shows where energy is being wasted
+            \item \textbf{Saving Tips} - Actionable advice per appliance
+            \item \textbf{Reduction Estimate} - Percentage savings possible
+        \end{itemize}
+    \end{block}
+    
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.65\linewidth]{results_summary}
+        \caption{Results Summary View}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{\textbf{Results (Cont.)}}
+    \justifying
+    
+    \begin{block}{\textbf{Sample Recommendations Generated}}
+        \begin{enumerate}
+            \item \textbf{AC Usage} - "Turn off AC when not in room" - Save 120 kWh/month
+            \item \textbf{Lighting} - "Switch to LED bulbs" - Save 15 kWh/month
+            \item \textbf{Chargers} - "Unplug when not in use" - Save 8 kWh/month
+            \item \textbf{Refrigerator} - "Check door seals" - Save 20 kWh/month
+        \end{enumerate}
+    \end{block}
+    
+    \begin{block}{\textbf{Metrics Achieved}}
+        \begin{itemize}
+            \item \textbf{Total Appliances Analyzed} - 18 common devices
+            \item \textbf{Potential Reduction} - 15-25\% of current usage
+            \item \textbf{Response Time} - Few seconds per analysis
+            \item \textbf{User Interface} - Clean, intuitive design
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}{\textbf{Conclusion}}
+    \justifying
+    
+    \begin{block}{\textbf{Summary}}
+        \begin{itemize}
+            \item Successfully built an AI-powered energy advisor
+            \item Simplified complex energy analysis for common users
+            \item Focused on Indian household context and appliances
+            \item Provided actionable, personalized recommendations
+            \item Demonstrated practical application of AI in daily life
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{\textbf{Key Achievements}}
+        \begin{enumerate}
+            \item Clean, intuitive React interface
+            \item Integration with Google Gemini AI
+            \item 18 appliances with realistic wattage values
+            \item Complete analysis pipeline from input to results
+            \item No technical knowledge required to use
+        \end{enumerate}
+    \end{block}
+\end{frame}
+
+\begin{frame}{\textbf{Future Scope}}
+    \justifying
+    
+    \begin{block}{\textbf{Potential Enhancements}}
+        \begin{itemize}
+            \item \textbf{Save History} - Store analysis in localStorage
+            \item \textbf{Export Reports} - Generate PDF reports
+            \item \textbf{Scenario Comparison} - Compare multiple setups
+            \item \textbf{Progress Tracking} - Monitor savings over time
+            \item \textbf{More Appliances} - Expand appliance database
+            \item \textbf{Location-Based} - Weather and climate insights
+            \item \textbf{Mobile App} - Native iOS/Android version
+        \end{itemize}
+    \end{block}
+    
+    \begin{block}{\textbf{Impact}}
+        This project demonstrates how AI can be used to solve everyday problems and help ordinary people make better decisions about energy consumption.
+    \end{block}
+\end{frame}
+
+\section{References}
+\begin{frame}{\textbf{References}}
+    \begin{thebibliography}{3}
+        \setbeamertemplate{bibliography item}[article]
+        \justifying
+        
+        \bibitem{googleAI}
+        Google AI, \textit{Gemini API Documentation}, Google, 2024. 
+        [Online]. Available: \href{https://ai.google.dev/docs}{ai.google.dev/docs}
+        
+        \bibitem{react}
+        React Team, \textit{React Documentation}, Meta Platforms, 2024.
+        [Online]. Available: \href{https://react.dev}{react.dev}
+        
+        \bibitem{vite}
+        Vite Team, \textit{Vite Documentation}, 2024.
+        [Online]. Available: \href{https://vitejs.dev}{vitejs.dev}
+        
+    \end{thebibliography}
+\end{frame}
+
+\begin{frame}{\textbf{Thank You}}
+    \begin{center}
+        \Large
+        \textbf{Thank You!}
+        
+        \vspace{1cm}
+        \Large
+        \textbf{Questions?}
+        
+        \vspace{2cm}
+        \normalsize
+        \textit{Energy Efficiency Advisor} \\
+        \small AI-Powered Energy Consumption Analysis
+        
+    \end{center}
+\end{frame}
+
+\end{document}
