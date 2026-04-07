@@ -4,8 +4,7 @@ import { appliances } from '../data/appliances';
 export default function HomeForm({ onSubmit, loading }) {
   const [household, setHousehold] = useState({
     occupants: 4,
-    location: 'California, USA',
-    tariffRate: 0.22,
+    location: 'India',
   });
   const [applianceData, setApplianceData] = useState(() => {
     const initial = {};
@@ -80,20 +79,9 @@ export default function HomeForm({ onSubmit, loading }) {
             <label>Location</label>
             <input
               type="text"
-              placeholder="e.g., California, USA"
+              placeholder="e.g., Mumbai, India"
               value={household.location}
               onChange={e => setHousehold({ ...household, location: e.target.value })}
-            />
-          </div>
-          <div className="form-group">
-            <label>Electricity Rate ($/kWh)</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={household.tariffRate}
-              onChange={e => setHousehold({ ...household, tariffRate: parseFloat(e.target.value) || 0.12 })}
-              required
             />
           </div>
         </div>

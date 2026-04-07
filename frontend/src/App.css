@@ -255,7 +255,7 @@ body {
 
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -282,6 +282,16 @@ body {
 .summary-label {
   font-size: 0.875rem;
   opacity: 0.8;
+}
+
+.comparison-text {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 20px;
+  text-align: center;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
 }
 
 .waste-list,

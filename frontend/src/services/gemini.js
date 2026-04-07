@@ -19,12 +19,11 @@ const promptTemplate = (data) => {
 HOUSEHOLD INFO:
 - Location: ${data.location || 'Not specified'}
 - Occupants: ${data.occupants} people
-- Electricity Rate: $${data.tariffRate}/kWh
 
 APPLIANCES:
 ${appliancesList}
 
-CURRENT ESTIMATED USAGE: ${totalMonthlyKwh.toFixed(1)} kWh/month ($${(totalMonthlyKwh * data.tariffRate).toFixed(2)}/month)
+CURRENT ESTIMATED USAGE: ${totalMonthlyKwh.toFixed(1)} kWh/month
 
 ADDITIONAL CONTEXT:
 ${data.context || 'None provided'}
@@ -33,7 +32,6 @@ Please provide your response in this exact JSON format:
 {
   "summary": {
     "totalMonthlyKwh": number,
-    "totalMonthlyCost": number,
     "largestConsumer": "appliance name",
     "comparisonToAverage": "description"
   },
@@ -41,8 +39,7 @@ Please provide your response in this exact JSON format:
     {
       "appliance": "name",
       "issue": "description of the problem",
-      "monthlyWasteKwh": number,
-      "monthlyWasteCost": number
+      "monthlyWasteKwh": number
     }
   ],
   "savingTips": [
@@ -50,7 +47,6 @@ Please provide your response in this exact JSON format:
       "appliance": "name",
       "tip": "specific actionable advice",
       "potentialMonthlyKwh": number,
-      "potentialMonthlySavings": number,
       "difficulty": "easy|medium|hard"
     }
   ],
@@ -64,7 +60,6 @@ Please provide your response in this exact JSON format:
   ],
   "estimatedAfterSavings": {
     "monthlyKwh": number,
-    "monthlyCost": number,
     "percentReduction": number
   }
 }

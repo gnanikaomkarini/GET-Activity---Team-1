@@ -30,10 +30,6 @@ export default function Results({ data, onReset }) {
 
       <div className="summary-cards">
         <div className="summary-card">
-          <div className="summary-value">${summary.totalMonthlyCost.toFixed(2)}</div>
-          <div className="summary-label">Current Monthly Cost</div>
-        </div>
-        <div className="summary-card">
           <div className="summary-value">{summary.totalMonthlyKwh.toFixed(0)}</div>
           <div className="summary-label">kWh Used/Month</div>
         </div>
@@ -42,6 +38,8 @@ export default function Results({ data, onReset }) {
           <div className="summary-label">Biggest Energy User</div>
         </div>
       </div>
+
+      <p className="comparison-text">{summary.comparisonToAverage}</p>
 
       {wasteAnalysis && wasteAnalysis.length > 0 && (
         <div className="section">
@@ -56,7 +54,6 @@ export default function Results({ data, onReset }) {
                 <p className="waste-issue">{item.issue}</p>
                 <div className="waste-costs">
                   <span>Wasting {item.monthlyWasteKwh.toFixed(1)} kWh/month</span>
-                  <span className="waste-amount">${item.monthlyWasteCost.toFixed(2)}/mo</span>
                 </div>
               </div>
             ))}
@@ -81,8 +78,7 @@ export default function Results({ data, onReset }) {
                 </div>
                 <p className="tip-text">{tip.tip}</p>
                 <div className="tip-savings">
-                  <span>Save {tip.potentialMonthlyKwh.toFixed(1)} kWh</span>
-                  <span className="tip-amount">${tip.potentialMonthlySavings.toFixed(2)}/mo</span>
+                  <span>Save {tip.potentialMonthlyKwh.toFixed(1)} kWh/month</span>
                 </div>
               </div>
             ))}
@@ -127,10 +123,6 @@ export default function Results({ data, onReset }) {
             <div className="savings-stat">
               <span className="savings-value">{estimatedAfterSavings.monthlyKwh.toFixed(0)}</span>
               <span className="savings-label">kWh/month</span>
-            </div>
-            <div className="savings-stat">
-              <span className="savings-value">${estimatedAfterSavings.monthlyCost.toFixed(2)}</span>
-              <span className="savings-label">/month</span>
             </div>
             <div className="savings-stat highlight">
               <span className="savings-value">{estimatedAfterSavings.percentReduction.toFixed(0)}%</span>
